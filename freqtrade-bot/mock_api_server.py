@@ -1,31 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Máy chủ giả lập Freqtrade REST API (Mock API Server)
+Máy chủ giả lập Freqtrade REST API + Phân tích AI Đa nguồn (Mock API Server)
 Thuộc Dự án: Hệ thống Giao dịch Tự động & Ứng dụng Điều khiển Từ xa Tiếng Việt (FreqBot VN Remote)
 
 Mục đích:
-- Mô phỏng chính xác 100% các Endpoint của Freqtrade (/api/v1/token/login, /profit, /balance, /status, /locks, /stopbuy, /reload_config, /forceexit, /show_config, /ping).
-- Tự động biến động giá nhẹ theo thời gian thực để kiểm thử giao diện Android (FreqBot VN Remote) và Web Dashboard Tiếng Việt ngay lập tức mà không cần đợi Docker hay sàn giao dịch.
+- Mô phỏng một phần API Freqtrade và /api/v1/vn_research riêng cho phát triển UI.
+- Tự động biến động giá nhẹ theo thời gian thực và cung cấp báo cáo Đề xuất Coin từ AI (ChatGPT + Gemini) cùng trạng thái Khung giờ giao dịch vàng (03:00-04:00 VN) để kiểm thử ngay lập tức.
 """
 
 import base64
 import json
 import os
+from pathlib import Path
 import random
 import secrets
 import sys
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "user_data" / "strategies"))
+from vn_support import VN, context_id, in_session
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-HOST = "0.0.0.0"
+HOST = os.environ.get("MOCK_HOST", "127.0.0.1")
 PORT = 8080
 
 # Tài khoản mặc định khớp với config.json
@@ -99,6 +103,156 @@ def update_live_prices():
         trade["stoploss_current_dist_ratio"] = round(dist_ratio, 4)
 
 
+def get_research_report():
+    """Đọc báo cáo thực tế từ user_data/research/latest.json hoặc sinh báo cáo giả lập chuẩn"""
+    base_dir = Path(__file__).resolve().parent / "user_data"
+    latest_path = base_dir / "research" / "latest.json"
+    config_path = base_dir / "config.json"
+    config = json.loads(config_path.read_text(encoding="utf-8-sig"))
+    now = datetime.now(timezone.utc)
+    schedule = config["vn_policy"]["schedule"]
+
+    if latest_path.is_file():
+        try:
+            report = json.loads(latest_path.read_text(encoding="utf-8"))
+            report["vn_time"] = now.astimezone(VN).strftime("%Y-%m-%d %H:%M:%S GMT+7")
+            report["in_trading_session"] = in_session(now, schedule)
+            report["schedule_windows"] = schedule.get("windows", [])
+            report["schedule_enabled"] = schedule.get("enabled", False)
+            return report
+        except Exception:
+            pass
+
+    return {
+        "schema_version": 1,
+        "is_mock": True,
+        "context_id": context_id(config),
+        "exchange": config["exchange"]["name"],
+        "generated_at": now.isoformat(),
+        "expires_at": (now + timedelta(seconds=900)).isoformat(),
+        "vn_time": now.astimezone(VN).strftime("%Y-%m-%d %H:%M:%S GMT+7"),
+        "in_trading_session": in_session(now, schedule),
+        "schedule_windows": schedule.get("windows", []),
+        "schedule_enabled": schedule.get("enabled", False),
+        "mode": config["vn_policy"]["research"]["mode"],
+        "candidates": [
+            {
+                "pair": "BTC/USDT",
+                "close": 69420.0,
+                "candle_closed_at": now.isoformat(),
+                "quote_volume_24h": 1485000000.0,
+                "spread": 0.00015,
+                "hour_change": 0.0145,
+                "volatility_5m": 0.0038,
+                "volume_ratio": 1.62,
+                "rsi_14": 58.4,
+                "regime": "TĂNG_MẠNH",
+                "score": 84.5,
+                "technical_eligible": True,
+                "reasons": [],
+                "eligible": True,
+                "ai_votes": {
+                    "openai": {
+                        "action": "consider",
+                        "confidence": 0.86,
+                        "reason": "BTC/USDT giữ vững cấu trúc trên EMA200, dòng tiền 24h mạnh và spread rất hẹp."
+                    },
+                    "gemini": {
+                        "action": "consider",
+                        "confidence": 0.83,
+                        "reason": "Xu hướng tăng ngắn hạn đồng thuận EMA20 > EMA50, RSI(14) ở mức 58.4 chưa quá mua."
+                    }
+                }
+            },
+            {
+                "pair": "SOL/USDT",
+                "close": 179.55,
+                "candle_closed_at": now.isoformat(),
+                "quote_volume_24h": 620000000.0,
+                "spread": 0.00028,
+                "hour_change": 0.0210,
+                "volatility_5m": 0.0052,
+                "volume_ratio": 1.48,
+                "rsi_14": 61.2,
+                "regime": "TĂNG_MẠNH",
+                "score": 81.2,
+                "technical_eligible": True,
+                "reasons": [],
+                "eligible": True,
+                "ai_votes": {
+                    "openai": {
+                        "action": "consider",
+                        "confidence": 0.81,
+                        "reason": "Khối lượng đột biến gấp 1.48 lần trung bình 20 phiên, biên độ tăng ổn định."
+                    },
+                    "gemini": {
+                        "action": "consider",
+                        "confidence": 0.79,
+                        "reason": "Động lượng tăng tốt trên sàn Binance/OKX, thanh khoản sâu, rủi ro trượt giá thấp."
+                    }
+                }
+            },
+            {
+                "pair": "ETH/USDT",
+                "close": 2528.30,
+                "candle_closed_at": now.isoformat(),
+                "quote_volume_24h": 890000000.0,
+                "spread": 0.00020,
+                "hour_change": 0.0065,
+                "volatility_5m": 0.0041,
+                "volume_ratio": 1.18,
+                "rsi_14": 52.1,
+                "regime": "TĂNG_ỔN_ĐỊNH",
+                "score": 74.8,
+                "technical_eligible": True,
+                "reasons": [],
+                "eligible": True,
+                "ai_votes": {
+                    "openai": {
+                        "action": "consider",
+                        "confidence": 0.75,
+                        "reason": "Giá tích lũy lành mạnh trên EMA50, phù hợp canh mua trong khung giờ 03:00-04:00 VN."
+                    },
+                    "gemini": {
+                        "action": "wait",
+                        "confidence": 0.68,
+                        "reason": "Xu hướng ổn định nhưng cần thêm xác nhận bứt phá khối lượng."
+                    }
+                }
+            },
+            {
+                "pair": "LINK/USDT",
+                "close": 16.45,
+                "candle_closed_at": now.isoformat(),
+                "quote_volume_24h": 95000000.0,
+                "spread": 0.00065,
+                "hour_change": -0.0120,
+                "volatility_5m": 0.0075,
+                "volume_ratio": 0.88,
+                "rsi_14": 41.5,
+                "regime": "XU_HƯỚNG_YẾU",
+                "score": 38.4,
+                "technical_eligible": False,
+                "reasons": ["Xu hướng chưa tăng"],
+                "eligible": False,
+                "ai_votes": {
+                    "openai": {
+                        "action": "avoid",
+                        "confidence": 0.82,
+                        "reason": "EMA20 nằm dưới EMA50, động lượng suy yếu, nên đứng ngoài bảo toàn vốn."
+                    },
+                    "gemini": {
+                        "action": "avoid",
+                        "confidence": 0.80,
+                        "reason": "Cấu trúc ngắn hạn giảm nhẹ, chưa đạt điều kiện mở vị thế mua."
+                    }
+                }
+            }
+        ],
+        "errors": []
+    }
+
+
 class FreqtradeMockHandler(BaseHTTPRequestHandler):
     def _send_cors_headers(self):
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -118,7 +272,7 @@ class FreqtradeMockHandler(BaseHTTPRequestHandler):
         auth = self.headers.get("Authorization", "")
         if auth.startswith("Bearer "):
             token = auth.split(" ", 1)[1].strip()
-            if token in BOT_STATE["active_tokens"] or len(token) > 8:
+            if token in BOT_STATE["active_tokens"]:
                 return True
         self._send_json({"detail": "Chưa xác thực hoặc JWT Token không hợp lệ"}, status_code=401)
         return False
@@ -209,6 +363,9 @@ class FreqtradeMockHandler(BaseHTTPRequestHandler):
                 "locks": BOT_STATE["locks"]
             })
 
+        elif path == "/api/v1/vn_research":
+            return self._send_json(get_research_report())
+
         elif path == "/api/v1/show_config":
             return self._send_json({
                 "bot_name": "FreqBot_VN_Remote",
@@ -267,7 +424,6 @@ class FreqtradeMockHandler(BaseHTTPRequestHandler):
             BOT_STATE["stopbuy_active"] = False
             BOT_STATE["state"] = "running"
             BOT_STATE["locks"] = []
-            # Khôi phục lệnh mẫu nếu đã bán hết trước đó để dễ thử nghiệm lại
             if not BOT_STATE["open_trades"]:
                 BOT_STATE["open_trades"] = [
                     {
@@ -362,7 +518,7 @@ if __name__ == "__main__":
     update_live_prices()
     server = HTTPServer((HOST, PORT), FreqtradeMockHandler)
     print("=" * 72)
-    print(f"🚀 MÁY CHỦ GIẢ LẬP FREQTRADE API ĐANG CHẠY TẠI: http://127.0.0.1:{PORT}")
+    print(f"🚀 MÁY CHỦ GIẢ LẬP FREQTRADE + AI RESEARCH ĐANG CHẠY TẠI: http://127.0.0.1:{PORT}")
     print(f"🌐 Giao diện Web Dashboard Tiếng Việt:         http://127.0.0.1:{PORT}/dashboard")
     print(f"📱 Địa chỉ cho Android Emulator:               http://10.0.2.2:{PORT}/")
     print(f"🔑 Tài khoản: {VALID_USERNAME} | Mật khẩu: {VALID_PASSWORD}")

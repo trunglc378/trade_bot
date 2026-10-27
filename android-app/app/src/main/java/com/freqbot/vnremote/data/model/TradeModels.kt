@@ -85,7 +85,37 @@ data class StatusMsgResponse(
 )
 
 /**
- * 7. Cấu hình kết nối máy chủ lưu trong SharedPreferences
+ * 7. Báo cáo Phân tích Thị trường & Đề xuất Coin từ Đa nguồn AI (/api/v1/vn_research)
+ */
+data class VnResearchReport(
+    @SerializedName("schema_version") val phienBan: Int = 0,
+    @SerializedName("is_mock") val duLieuGiaLap: Boolean = false,
+    @SerializedName("generated_at") val thoiDiemTao: String = "",
+    @SerializedName("expires_at") val thoiDiemHetHan: String = "",
+    @SerializedName("exchange") val sanGiaoDich: String = "binance",
+    @SerializedName("vn_time") val gioVietNam: String = "",
+    @SerializedName("in_trading_session") val dangTrongKhungGioMua: Boolean = false,
+    @SerializedName("mode") val cheDoAi: String = "advisory",
+    @SerializedName("candidates") val danhSachCoin: List<VnResearchCandidate> = emptyList()
+)
+
+data class VnResearchCandidate(
+    @SerializedName("pair") val capCoin: String,
+    @SerializedName("score") val diemKyThuat: Double = 0.0,
+    @SerializedName("rsi_14") val rsi14: Double = 50.0,
+    @SerializedName("regime") val trangThaiThiTruong: String = "",
+    @SerializedName("eligible") val duDieuKienMua: Boolean = false,
+    @SerializedName("ai_votes") val phieuBauAi: Map<String, AiVoteDetail> = emptyMap()
+)
+
+data class AiVoteDetail(
+    @SerializedName("action") val hanhDong: String = "wait",
+    @SerializedName("confidence") val doTuTin: Double = 0.0,
+    @SerializedName("reason") val lyDo: String = ""
+)
+
+/**
+ * 8. Cấu hình kết nối máy chủ lưu trong SharedPreferences
  */
 data class ServerConfig(
     val serverUrl: String,

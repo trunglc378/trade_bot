@@ -16,7 +16,10 @@ Tính năng cốt lõi:
 4. Luồng thông báo đẩy 100% Tiếng Việt rõ ràng khi Vào lệnh (confirm_trade_entry) và Thoát lệnh (confirm_trade_exit).
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
+import json
+import logging
+from pathlib import Path
 from typing import Optional
 import numpy as np
 import pandas as pd
@@ -26,6 +29,9 @@ from freqtrade.strategy import IStrategy, IntParameter, DecimalParameter
 from freqtrade.persistence import Trade
 import talib.abstract as ta
 import freqtrade.vendor.qtpylib.indicators as qtpylib
+from vn_support import in_session, number, report_allows, spread_ratio, stake_size
+
+logger = logging.getLogger(__name__)
 
 
 class VnSmartTrendStrategy(IStrategy):
@@ -68,7 +74,71 @@ class VnSmartTrendStrategy(IStrategy):
     ignore_roi_if_entry_signal = False
 
     # Số nến lịch sử cần tải khi khởi động để tính chuẩn EMA 200
-    startup_candle_count: int = 200
+    startup_candle_count: int = 600
+
+    def bot_start(self, **kwargs) -> None:
+        policy = self.config["vn_policy"]
+        # Validate schedules even if startup happens outside the configured window.
+        in_session(datetime.now().astimezone(), policy["schedule"])
+        if self._historical() and policy["research"]["mode"] == "required":
+            raise ValueError("AI required cannot use today's research in backtests. Use advisory/off baseline.")
+
+    def _historical(self):
+        mode = self.config.get("runmode")
+        return getattr(mode, "value", mode) in ("backtest", "hyperopt", "edge", "plot")
+
+    def _notify(self, message):
+        try:
+            self.dp.send_msg(message)
+        except Exception:
+            logger.warning("Không gửi được thông báo; tiếp tục xử lý lệnh.")
+
+    def _stake(self, proposed, maximum, minimum):
+        equity = self.wallets.get_total_stake_amount()
+        used = sum(t.stake_amount for t in Trade.get_trades_proxy(is_open=True))
+        return stake_size(equity, proposed, maximum, minimum, used, self.stoploss,
+                          self.config["vn_policy"]["risk"])
+
+    def custom_stake_amount(self, pair, current_time, current_rate, proposed_stake,
+                            min_stake, max_stake, leverage, entry_tag, side, **kwargs):
+        try:
+            if side != "long" or leverage != 1:
+                return 0.0
+            return self._stake(proposed_stake, max_stake, min_stake)
+        except Exception:
+            logger.warning("Không tính được giới hạn vốn; từ chối mua.")
+            return 0.0
+
+    def _entry_allowed(self, pair, amount, rate, now, side):
+        try:
+            policy = self.config["vn_policy"]
+            if side != "long" or not in_session(now, policy["schedule"]):
+                return False
+            cost = number(amount) * number(rate)
+            if cost <= 0 or cost > self._stake(cost, cost, None) + 1e-8:
+                return False
+            # Historical OHLCV cannot reconstruct orderbooks or today's AI opinions.
+            if self._historical():
+                return policy["research"]["mode"] != "required"
+            frame, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
+            candle = frame.iloc[-1]
+            age = (now - candle["date"].to_pydatetime() - timedelta(minutes=5)).total_seconds()
+            if not 0 <= age <= 600 or number(candle["close"]) <= 0:
+                return False
+            if abs(number(rate) / number(candle["close"]) - 1) > policy["risk"]["max_entry_deviation"]:
+                return False
+            book = self.dp.orderbook(pair, 1)
+            if spread_ratio(book["bids"][0][0], book["asks"][0][0]) > policy["research"]["max_spread"]:
+                return False
+            if policy["research"]["mode"] != "off":
+                path = Path(self.config["user_data_dir"]) / "research" / "latest.json"
+                report = json.loads(path.read_text(encoding="utf-8"))
+                if not report_allows(report, self.config, pair, now):
+                    return False
+            return True
+        except Exception:
+            logger.warning("Dữ liệu/chính sách không hợp lệ; từ chối mua %s.", pair)
+            return False
 
     # Tham số có thể tối ưu hóa bằng Hyperopt
     buy_rsi_min = IntParameter(40, 55, default=45, space="buy", optimize=True)
@@ -143,6 +213,7 @@ class VnSmartTrendStrategy(IStrategy):
         Xác định tín hiệu Mua (enter_long) và gắn nhãn lý do bằng Tiếng Việt (enter_tag)
         """
         dataframe.loc[:, "enter_tag"] = ""
+        dataframe.loc[:, "enter_long"] = 0
 
         # Điều kiện Mua 1: Xu hướng tăng chuẩn (Close > EMA200, EMA20 > EMA50, RSI khỏe, Volume đột biến)
         dk_xu_huong_tang = (
@@ -161,7 +232,8 @@ class VnSmartTrendStrategy(IStrategy):
 
         # Điều kiện Mua 2: Bắt nhịp hồi khi quá bán chạm dải dưới Bollinger trong xu hướng lớn ổn định
         dk_hoi_qua_ban = (
-            (dataframe["close"] < dataframe["bb_lowerband"] * 1.003)
+            (dataframe["close"] > dataframe["ema200"])
+            & (dataframe["close"] < dataframe["bb_lowerband"] * 1.003)
             & (dataframe["rsi"] < self.oversold_rsi.value)
             & (dataframe["close"] > dataframe["open"])
             & (dataframe["volume"] > dataframe["volume_mean_20"])
@@ -172,6 +244,11 @@ class VnSmartTrendStrategy(IStrategy):
             "BAT_NHIP_HOI_BOLLINGER_RSI",
         )
 
+        # Candle dates are UTC opening times; orders can start at candle CLOSE.
+        sessions = (pd.to_datetime(dataframe["date"], utc=True) + pd.Timedelta(minutes=5)).map(
+            lambda date: in_session(date.to_pydatetime(), self.config["vn_policy"]["schedule"]))
+        dataframe.loc[~sessions, ["enter_long", "enter_tag"]] = (0, "")
+
         return dataframe
 
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
@@ -179,6 +256,7 @@ class VnSmartTrendStrategy(IStrategy):
         Xác định tín hiệu Bán (exit_long) và gắn nhãn lý do thoát lệnh (exit_tag)
         """
         dataframe.loc[:, "exit_tag"] = ""
+        dataframe.loc[:, "exit_long"] = 0
 
         # Điều kiện Bán 1: Chạm vùng quá mua mạnh trên dải Bollinger trên
         dk_qua_mua = (
@@ -219,8 +297,10 @@ class VnSmartTrendStrategy(IStrategy):
         """
         Gửi báo cáo Tiếng Việt rành mạch mỗi khi Bot bắt đầu mở lệnh mới
         """
+        if not self._entry_allowed(pair, amount, rate, current_time, side):
+            return False
         if self.dp:
-            self.dp.send_msg(
+            self._notify(
                 f"🟢 [VÀO LỆNH MỚI]\n"
                 f"• Cặp giao dịch: {pair}\n"
                 f"• Giá mua dự kiến: {rate:.4f} USDT\n"
@@ -248,7 +328,7 @@ class VnSmartTrendStrategy(IStrategy):
         if self.dp:
             profit_ratio = trade.calc_profit_ratio(rate)
             bieu_tuong = "💰 [CHỐT LỜI]" if profit_ratio >= 0 else "🛑 [CẮT LỖ / ĐÓNG LỆNH]"
-            self.dp.send_msg(
+            self._notify(
                 f"{bieu_tuong} {pair}\n"
                 f"• Giá mua vào: {trade.open_rate:.4f} USDT\n"
                 f"• Giá bán ra: {rate:.4f} USDT\n"

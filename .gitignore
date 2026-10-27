@@ -2,16 +2,20 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
 .venv/
 venv/
 env/
-freqtrade-bot/user_data/logs/
+.env
+config-secrets.json
+*.sqlite*
 freqtrade-bot/user_data/data/
+freqtrade-bot/user_data/logs/
 freqtrade-bot/user_data/backtest_results/
 freqtrade-bot/user_data/hyperopt_results/
-freqtrade-bot/user_data/*.sqlite
-freqtrade-bot/user_data/*.sqlite-journal
 freqtrade-bot/user_data/config.secret.json
+freqtrade-bot/user_data/research/latest.json
+freqtrade-bot/user_data/research/history/
 
 # Android Studio & Gradle build artifacts
 android-app/.gradle/

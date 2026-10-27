@@ -4,7 +4,7 @@ import com.freqbot.vnremote.data.model.*
 import retrofit2.http.*
 
 /**
- * Interface Retrofit định nghĩa toàn bộ các lệnh gọi điều khiển Freqtrade REST API
+ * Interface Retrofit định nghĩa toàn bộ các lệnh gọi điều khiển Freqtrade REST API & Cố vấn AI
  */
 interface FreqtradeApi {
 
@@ -30,15 +30,19 @@ interface FreqtradeApi {
     @GET("api/v1/locks")
     suspend fun kiemTraKhoaRuiRo(): ProtectionLocksResponse
 
-    // 6. Tạm dừng mua thêm lệnh mới (chỉ canh chốt lời/cắt lỗ lệnh cũ)
+    // 6. Lấy báo cáo Phân tích Thị trường, Khung giờ vàng & Đề xuất Coin từ AI (ChatGPT + Gemini)
+    @GET("api/v1/vn_research")
+    suspend fun layBaoCaoNghienCuuAi(): VnResearchReport
+
+    // 7. Tạm dừng mua thêm lệnh mới (chỉ canh chốt lời/cắt lỗ lệnh cũ)
     @POST("api/v1/stopbuy")
     suspend fun tamDungMuaMoi(): StatusMsgResponse
 
-    // 7. Khởi động lại chế độ mua bán bình thường
+    // 8. Khởi động lại chế độ mua bán bình thường
     @POST("api/v1/reload_config")
     suspend fun khoiDongLaiBot(): StatusMsgResponse
 
-    // 8. BÁN KHẨN CẤP (Đóng 1 lệnh hoặc toàn bộ lệnh ngay lập tức theo giá thị trường)
+    // 9. BÁN KHẨN CẤP (Đóng 1 lệnh hoặc toàn bộ lệnh ngay lập tức theo giá thị trường)
     @POST("api/v1/forceexit")
     suspend fun banKhanCap(
         @Body request: ForceExitRequest

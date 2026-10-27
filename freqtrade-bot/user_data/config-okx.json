@@ -1,0 +1,18 @@
+{
+    "exchange": {
+        "name": "okx",
+        "key": "",
+        "secret": "",
+        "password": "",
+        "pair_whitelist": [
+            "BTC/USDT",
+            "ETH/USDT",
+            "SOL/USDT",
+            "XRP/USDT",
+            "LINK/USDT"
+        ]
+    },
+    "order_types": {
+        "stoploss": "market"
+    }
+}

@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FreqBot VN Remote - Bảng Điều Khiển Giao Dịch Tiếng Việt</title>
+    <title>FreqBot VN Remote - Bảng Điều Khiển Giao Dịch & Cố Vấn AI Tiếng Việt</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header class="top-bar">
             <div>
-                <h1>🤖 FreqBot VN Remote — Bảng Điều Khiển Tiếng Việt</h1>
-                <p class="subtitle">Lõi xử lý ngầm Freqtrade Engine + Quản trị rủi ro đa tầng</p>
+                <h1>🤖 FreqBot VN Remote — Bảng Điều Khiển Giao Dịch & Cố Vấn AI</h1>
+                <p class="subtitle">Lõi Freqtrade (Binance / OKX) + Khung Giờ Vàng (03:00–04:00 VN) + Hội Đồng AI (ChatGPT & Gemini)</p>
             </div>
             <div class="conn-badge" id="connStatus">⚪ Chưa kết nối</div>
         </header>
@@ -57,6 +57,45 @@
                     <button class="btn btn-success" onclick="khoiDongLaiMua()">▶️ Bật Lại Mua</button>
                     <button class="btn btn-danger" onclick="banKhanCapToanBo()">🚨 CẮT LỖ / BÁN KHẨN CẤP TOÀN BỘ (PANIC SELL)</button>
                 </div>
+            </div>
+        </section>
+
+        <!-- Bảng Phân Tích Thị Trường, Khung Giờ Vàng & Đề Xuất Coin Đa Nguồn AI -->
+        <section class="card" aria-labelledby="researchTitle">
+            <div class="section-header">
+                <div>
+                    <h2 id="researchTitle">Phân tích thị trường, lịch mua & đề xuất AI</h2>
+                    <p class="subtitle">Kết hợp bộ lọc định lượng kỹ thuật (EMA/RSI/Spread/Volatility) và khuyến nghị độc lập từ ChatGPT (OpenAI) & Google Gemini. Bot chỉ giới hạn giờ mua mới, vẫn canh thoát lệnh 24/7.</p>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-outline" onclick="dongBoNghienCuuTuServer()">Đồng bộ báo cáo từ mock</button>
+                    <label for="researchFile" class="btn btn-outline" style="cursor:pointer;">📂 Tải Tệp latest.json</label>
+                    <input id="researchFile" type="file" accept=".json,application/json" style="display:none;">
+                </div>
+            </div>
+            <p>03:00–04:00 VN là khung giờ ví dụ cần kiểm chứng, không bảo đảm lợi nhuận. Freqtrade thật dùng chọn tệp latest.json; dữ liệu giả lập được đánh dấu riêng.</p>
+            <p id="researchStatus" role="status" style="margin-bottom: 12px; color: #38bdf8; font-weight: 600;">
+                Chưa tải báo cáo. Nhấn "Kết Nối & Đăng Nhập" hoặc chọn tệp user_data/research/latest.json.
+            </p>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cặp Coin</th>
+                            <th>Điểm Kỹ Thuật (/100)</th>
+                            <th>RSI (14) & Trạng Thái</th>
+                            <th>Spread</th>
+                            <th>Biến Động 1h</th>
+                            <th>Kết Quả Sàng Lọc</th>
+                            <th>Nhận Định Đa Nguồn AI (ChatGPT & Gemini)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="researchRows">
+                        <tr>
+                            <td colspan="7" class="empty-row">Nhấn "Kết Nối & Đăng Nhập" hoặc "Tải Tệp latest.json" để xem đề xuất Coin từ AI.</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </section>
 

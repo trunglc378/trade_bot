@@ -24,18 +24,21 @@ import com.freqbot.vnremote.data.model.ForceExitRequest
 import com.freqbot.vnremote.data.model.OpenTrade
 import com.freqbot.vnremote.worker.RiskMonitorWorker
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.Locale
+import java.time.Instant
+import java.time.OffsetDateTime
 import java.util.concurrent.TimeUnit
 
 /**
  * Màn hình điều khiển chính 100% Tiếng Việt của ứng dụng FreqBot VN Remote:
  * - Hiển thị Tổng quan Lợi nhuận, Số dư USDT, Trạng thái Giáp bảo vệ rủi ro (Protections).
+ * - Hiển thị Trạng thái Khung giờ giao dịch vàng (03:00-04:00 VN) & Đề xuất Coin từ AI (ChatGPT + Gemini).
  * - Danh sách RecyclerView các lệnh đang mở theo thời gian thực (tự động cập nhật mỗi 5 giây).
  * - Nút "Tạm dừng Mua mới", Nút "Bật lại Mua", và Nút đỏ "BÁN KHẨN CẤP TOÀN BỘ (PANIC SELL)".
- * - Cho phép cấu hình địa chỉ IP VPS / Tailscale VPN ngay trên ứng dụng.
  */
 class MainActivity : AppCompatActivity() {
 
@@ -43,6 +46,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvTongQuan: TextView
     private lateinit var tvSoDuTaiKhoan: TextView
     private lateinit var tvTrangThaiRuiRo: TextView
+    private lateinit var tvCoVanAi: TextView
     private lateinit var tvTrongDanhSach: TextView
     private lateinit var rvDanhSachLenh: RecyclerView
     private lateinit var btnCauHinhMayChu: Button
@@ -79,6 +83,7 @@ class MainActivity : AppCompatActivity() {
         tvTongQuan = findViewById(R.id.tvTongQuan)
         tvSoDuTaiKhoan = findViewById(R.id.tvSoDuTaiKhoan)
         tvTrangThaiRuiRo = findViewById(R.id.tvTrangThaiRuiRo)
+        tvCoVanAi = findViewById(R.id.tvCoVanAi)
         tvTrongDanhSach = findViewById(R.id.tvTrongDanhSach)
         rvDanhSachLenh = findViewById(R.id.rvDanhSachLenh)
         btnCauHinhMayChu = findViewById(R.id.btnCauHinhMayChu)
@@ -96,12 +101,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun thietLapSuKienNutBam() {
-        // Nút mở hộp thoại cấu hình IP VPS / Tailscale
         btnCauHinhMayChu.setOnClickListener {
             hienThiHopThoaiCauHinhMayChu()
         }
 
-        // Nút Tạm dừng mua thêm lệnh mới (/api/v1/stopbuy)
         btnTamDungMua.setOnClickListener {
             lifecycleScope.launch {
                 try {
@@ -118,7 +121,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Nút Khởi động lại chế độ mua bán bình thường (/api/v1/reload_config)
         btnBatLaiMua.setOnClickListener {
             lifecycleScope.launch {
                 try {
@@ -135,7 +137,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Nút BÁN KHẨN CẤP TOÀN BỘ (Có hộp thoại xác nhận chống bấm nhầm)
         btnBanKhanCap.setOnClickListener {
             hienThiHopThoaiBanKhanCap()
         }
@@ -148,12 +149,10 @@ class MainActivity : AppCompatActivity() {
 
         pollingJob = lifecycleScope.launch {
             try {
-                // Bước 1: Đăng nhập lấy JWT Access Token
                 val basicAuth = RetrofitClient.taoChuoiBasicAuth(config.username, config.password)
                 val tokenRes = api.dangNhap(basicAuth)
                 RetrofitClient.jwtToken = tokenRes.accessToken
 
-                // Bước 2: Vòng lặp tự động làm mới dữ liệu mỗi 5 giây khi đang mở App
                 while (isActive) {
                     taiDuLieuBangDieuKhien()
                     delay(5000)
@@ -162,7 +161,7 @@ class MainActivity : AppCompatActivity() {
                 tvTrangThaiRuiRo.text =
                     "🔴 MẤT KẾT NỐI MÁY CHỦ BOT (${config.serverUrl})\n" +
                     "Chi tiết: ${e.message}\n" +
-                    "Hãy nhấn nút [⚙️ Cấu hình Máy chủ] để kiểm tra địa chỉ IP VPS / Tailscale."
+                    "Hãy nhấn nút [⚙️ Máy chủ] để kiểm tra địa chỉ IP VPS / Tailscale."
                 thongBaoLoi("Lỗi kết nối máy chủ Bot: ${e.message}")
             }
         }
@@ -231,6 +230,48 @@ class MainActivity : AppCompatActivity() {
             } else {
                 tvTrongDanhSach.visibility = View.GONE
                 rvDanhSachLenh.visibility = View.VISIBLE
+            }
+
+            // 5. Đồng bộ Báo cáo Phân tích Thị trường & Đề xuất Coin từ AI (nếu máy chủ hỗ trợ)
+            try {
+                val baoCaoAi = api.layBaoCaoNghienCuuAi()
+                val conHan = runCatching {
+                    val now = Instant.now()
+                    baoCaoAi.phienBan == 1 &&
+                        !now.isBefore(OffsetDateTime.parse(baoCaoAi.thoiDiemTao).toInstant()) &&
+                        now.isBefore(OffsetDateTime.parse(baoCaoAi.thoiDiemHetHan).toInstant())
+                }.getOrDefault(false)
+                val trangThaiGio = if (baoCaoAi.dangTrongKhungGioMua) {
+                    "Trong khung mua cấu hình tại thời điểm lấy báo cáo"
+                } else {
+                    "Ngoài khung mua tại thời điểm lấy báo cáo; vẫn canh thoát 24/7"
+                }
+                val topCoins = baoCaoAi.danhSachCoin.take(3).joinToString("\n") { c ->
+                    val bieuTuong = if (!baoCaoAi.duLieuGiaLap && conHan && c.duDieuKienMua) "✅" else "⛔"
+                    val nhanDinh = c.phieuBauAi.entries.joinToString(", ") { (nguon, phieu) ->
+                        "${nguon.uppercase()}: ${phieu.hanhDong} (${(phieu.doTuTin * 100).toInt()}%)"
+                    }
+                    String.format(
+                        Locale.US,
+                        "%s %s (Điểm: %.1f/100 | RSI: %.1f | %s)\n   💡 AI: %s",
+                        bieuTuong,
+                        c.capCoin,
+                        c.diemKyThuat,
+                        c.rsi14,
+                        c.trangThaiThiTruong,
+                        nhanDinh.ifEmpty { "Đang phân tích" }
+                    )
+                }
+                tvCoVanAi.text =
+                    "NGHIÊN CỨU AI (${baoCaoAi.sanGiaoDich.uppercase()})\n" +
+                    (if (baoCaoAi.duLieuGiaLap) "DỮ LIỆU GIẢ LẬP — không phải nhận định AI thật\n" else "") +
+                    (if (conHan) "Báo cáo còn hạn\n" else "Báo cáo hết hạn hoặc không hợp lệ\n") +
+                    "• $trangThaiGio\n" +
+                    topCoins + "\nĐiểm/confidence không phải xác suất sinh lời."
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                tvCoVanAi.text = "Chưa lấy được báo cáo nghiên cứu. Endpoint AI hiện chỉ có ở mock; Freqtrade gốc không cung cấp endpoint này."
             }
         } catch (e: Exception) {
             // Bỏ qua lỗi mạng thoáng qua trong vòng lặp 5 giây

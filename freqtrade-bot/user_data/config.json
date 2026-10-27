@@ -38,20 +38,20 @@
         "emergency_exit": "market",
         "force_entry": "market",
         "force_exit": "market",
-        "stoploss": "market",
+        "stoploss": "limit",
         "stoploss_on_exchange": true,
-        "stoploss_on_exchange_interval": 60
+        "stoploss_on_exchange_interval": 60,
+        "stoploss_on_exchange_limit_ratio": 0.99
     },
     "exchange": {
         "name": "binance",
-        "key": "DIEN_API_KEY_SAN_BINANCE_CUA_BAN_TAI_DAY",
-        "secret": "DIEN_SECRET_KEY_SAN_BINANCE_CUA_BAN_TAI_DAY",
+        "key": "",
+        "secret": "",
         "ccxt_config": {
             "enableRateLimit": true
         },
         "ccxt_async_config": {
-            "enableRateLimit": true,
-            "rateLimit": 100
+            "enableRateLimit": true
         },
         "pair_whitelist": [
             "BTC/USDT",
@@ -80,13 +80,54 @@
         "verbosity": "info",
         "enable_openapi": true,
         "jwt_secret_key": "chuoi_khoa_bi_mat_cua_rieng_ban_hay_thay_doi",
-        "CORS_origins": ["*"],
+        "CORS_origins": [
+            "http://127.0.0.1:8090",
+            "http://localhost:8090"
+        ],
         "username": "admin",
         "password": "mat_khau_manh_cua_ban"
     },
     "initial_state": "running",
-    "force_entry_enable": true,
+    "force_entry_enable": false,
     "internals": {
         "process_throttle_secs": 5
+    },
+    "vn_policy": {
+        "schedule": {
+            "enabled": true,
+            "windows": [
+                {
+                    "start": "03:00",
+                    "end": "04:00",
+                    "weekdays": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6
+                    ]
+                }
+            ]
+        },
+        "risk": {
+            "risk_per_trade": 0.005,
+            "max_position_fraction": 0.2,
+            "max_exposure_fraction": 0.6,
+            "cost_buffer": 0.004,
+            "max_entry_deviation": 0.005
+        },
+        "research": {
+            "mode": "advisory",
+            "ttl_seconds": 900,
+            "min_quote_volume": 10000000,
+            "max_spread": 0.002,
+            "max_volatility": 0.02,
+            "max_hour_change": 0.06,
+            "providers": {},
+            "min_ai_votes": 2,
+            "min_ai_confidence": 0.7
+        }
     }
 }
