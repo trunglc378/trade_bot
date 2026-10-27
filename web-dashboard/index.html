@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreqBot VN Remote - Bảng Điều Khiển Giao Dịch Tiếng Việt</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="top-bar">
+            <div>
+                <h1>🤖 FreqBot VN Remote — Bảng Điều Khiển Tiếng Việt</h1>
+                <p class="subtitle">Lõi xử lý ngầm Freqtrade Engine + Quản trị rủi ro đa tầng</p>
+            </div>
+            <div class="conn-badge" id="connStatus">⚪ Chưa kết nối</div>
+        </header>
+
+        <!-- Khung cấu hình kết nối máy chủ Bot -->
+        <section class="card config-bar">
+            <div class="input-group">
+                <label>Địa chỉ API Freqtrade (VPS / Tailscale / Local):</label>
+                <input type="text" id="botUrl" value="http://127.0.0.1:8080/api/v1" />
+            </div>
+            <div class="input-group">
+                <label>Tài khoản:</label>
+                <input type="text" id="username" value="admin" />
+            </div>
+            <div class="input-group">
+                <label>Mật khẩu:</label>
+                <input type="password" id="password" value="mat_khau_manh_cua_ban" />
+            </div>
+            <button class="btn btn-primary" onclick="ketNoiVaDangNhap()">🔗 Kết Nối & Đăng Nhập</button>
+        </section>
+
+        <!-- Thẻ cảnh báo Giáp Bảo Vệ Rủi Ro (Protections) -->
+        <section class="card risk-banner" id="riskBanner">
+            🛡️ <strong>TRẠNG THÁI GIÁP BẢO VỆ RỦI RO:</strong> Đang chờ kết nối tới máy chủ Bot...
+        </section>
+
+        <!-- Lưới 3 Thẻ Tổng Quan Tài Khoản -->
+        <section class="grid-3">
+            <div class="card">
+                <h3>📊 Tổng Quan Lợi Nhuận</h3>
+                <div class="metric-big" id="tongLaiUsdt">-- USDT</div>
+                <p id="chiTietLoiNhuan">Tỷ lệ thắng: --% | Max Drawdown: --%</p>
+            </div>
+            <div class="card">
+                <h3>💼 Số Dư Tài Khoản (USDT)</h3>
+                <div class="metric-big text-blue" id="tongTaiSanUsdt">-- USDT</div>
+                <p id="chiTietSoDu">Vốn rảnh: -- USDT | Vốn trong lệnh: -- USDT</p>
+            </div>
+            <div class="card">
+                <h3>⚡ Điều Khiển Khẩn Cấp</h3>
+                <div class="action-buttons">
+                    <button class="btn btn-warning" onclick="tamDungMuaMoi()">⏸️ Tạm Dừng Mua Mới</button>
+                    <button class="btn btn-success" onclick="khoiDongLaiMua()">▶️ Bật Lại Mua</button>
+                    <button class="btn btn-danger" onclick="banKhanCapToanBo()">🚨 CẮT LỖ / BÁN KHẨN CẤP TOÀN BỘ (PANIC SELL)</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bảng Danh Sách Lệnh Đang Mở -->
+        <section class="card">
+            <div class="section-header">
+                <h2>📈 Bảng Lệnh Đang Mở (Thời Gian Thực - Cập nhật 5 giây/lần)</h2>
+                <button class="btn btn-outline" onclick="thuNghiemKhoaRuiRo()">🛡️ Thử Nghiệm Bật/Tắt Khóa Rủi Ro</button>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã Lệnh</th>
+                            <th>Cặp Coin</th>
+                            <th>Vốn Vào Lệnh</th>
+                            <th>Giá Mua Vào</th>
+                            <th>Giá Hiện Tại</th>
+                            <th>Lãi / Lỗ Tạm Tính</th>
+                            <th>Mốc Cắt Lỗ Cứng (Stop-Loss)</th>
+                            <th>Tín Hiệu Mua</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bangLenhDangMo">
+                        <tr>
+                            <td colspan="9" class="empty-row">Nhấn "Kết Nối & Đăng Nhập" để tải dữ liệu từ máy chủ Bot.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+---
+services:
+  freqtrade:
+    image: freqtradeorg/freqtrade:stable
+    restart: unless-stopped
+    container_name: freqtrade_vn_bot
+    volumes:
+      - "./user_data:/freqtrade/user_data"
+    # Mở cổng 8080 cho Ứng dụng Android (FreqBot VN Remote) & Web Dashboard Tiếng Việt kết nối
+    # Lưu ý bảo mật: Khi chạy trên VPS thực tế có cài Tailscale, hãy đổi thành "100.x.y.z:8080:8080"
+    ports:
+      - "8080:8080"
+    command: >
+      trade
+      --logfile /freqtrade/user_data/logs/freqtrade.log
+      --db-url sqlite:////freqtrade/user_data/tradesv3.sqlite
+      --config /freqtrade/user_data/config.json
+      --strategy VnSmartTrendStrategy
