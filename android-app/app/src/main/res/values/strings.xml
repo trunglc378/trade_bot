@@ -1,4 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FreqBot VN Remote</string>
+    <string name="title_app_header">🤖 FreqBot VN Remote</string>
+    <string name="btn_server_config">⚙️ Máy chủ</string>
+    <string name="default_server_status">🌐 Máy chủ: http://10.0.2.2:8080/</string>
+    <string name="loading_risk_status">🔄 Đang kiểm tra trạng thái Giáp bảo vệ rủi ro...</string>
+    <string name="loading_profit_summary">📊 TỔNG QUAN HIỆU SUẤT GIAO DỊCH\nĐang tải dữ liệu lợi nhuận từ Freqtrade...</string>
+    <string name="loading_balance">💼 SỐ DƯ TÀI KHOẢN (USDT)\nĐang tải số dư...</string>
+    <string name="loading_ai_research">🧠 PHÂN TÍCH THỊ TRƯỜNG &amp; CỐ VẤN AI\nĐang chờ đồng bộ báo cáo nghiên cứu...</string>
+    <string name="btn_pause_buy">⏸️ Tạm dừng Mua</string>
+    <string name="btn_resume_buy">▶️ Bật lại Mua</string>
+    <string name="btn_panic_sell">🚨 CẮT LỖ / BÁN KHẨN CẤP TOÀN BỘ (THU HỒI USDT)</string>
+    <string name="section_open_trades">📈 DANH SÁCH LỆNH ĐANG MỞ (CẬP NHẬT 5 GIÂY/LẦN)</string>
+    <string name="empty_open_trades">Hiện không có lệnh nào đang mở (100% vốn đang ở trạng thái USDT an toàn).</string>
+    <string name="btn_close_single_trade">Đóng lệnh này</string>
+    <string name="label_server_url">Địa chỉ IP Máy chủ / Tailscale VPN (kèm cổng 8080):</string>
+    <string name="hint_server_url">http://100.x.y.z:8080/ hoặc http://10.0.2.2:8080/</string>
+    <string name="label_username">Tài khoản (Username trong config.json):</string>
+    <string name="hint_username">admin</string>
+    <string name="label_password">Mật khẩu (Password trong config.json):</string>
+    <string name="hint_password">mat_khau_manh_cua_ban</string>
 </resources>

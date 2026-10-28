@@ -12,7 +12,14 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / "freqtrade-bot/user_data/strategies"),
                 str(ROOT / "freqtrade-bot/user_data/research")]
-from vn_support import in_session, report_allows, stake_size, spread_ratio
+from vn_support import (
+    format_entry_tag_vi,
+    format_exit_reason_vi,
+    in_session,
+    report_allows,
+    spread_ratio,
+    stake_size,
+)
 import providers
 import run as research
 from hourly import summarize
@@ -95,6 +102,12 @@ class PolicyTests(unittest.TestCase):
         self.assertTrue(report[3]["enough_samples"])
         self.assertFalse(report[4]["enough_samples"])
 
+    def test_vietnamese_entry_tag_and_exit_reason_labels(self):
+        self.assertIn("Xu hướng tăng", format_entry_tag_vi("XU_HUONG_TANG_EMA_RSI"))
+        self.assertIn("Tín hiệu", format_entry_tag_vi(""))
+        self.assertIn("Cắt lỗ", format_exit_reason_vi("stop_loss"))
+        self.assertIn("khẩn cấp", format_exit_reason_vi("force_exit"))
+
 
 class ResearchTests(unittest.TestCase):
     def setUp(self):
@@ -110,6 +123,18 @@ class ResearchTests(unittest.TestCase):
             path = Path(directory) / "latest.json"
             research.atomic_write(path, report)
             self.assertEqual(report, json.loads(path.read_text(encoding="utf-8")))
+
+    def test_prune_history_keeps_most_recent_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            hist_dir = Path(directory) / "history"
+            for idx in range(5):
+                research.atomic_write(hist_dir / f"20261028T030{idx}00Z.json", {"seq": idx})
+            research.prune_history(hist_dir, max_files=3)
+            remaining = sorted(p.name for p in hist_dir.glob("*.json"))
+            self.assertEqual(
+                remaining,
+                ["20261028T030200Z.json", "20261028T030300Z.json", "20261028T030400Z.json"],
+            )
 
     def test_wrong_exchange_policy_and_pair(self):
         report = research.build_report(self.c, self.exchange, NOW)

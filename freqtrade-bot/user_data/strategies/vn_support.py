@@ -6,6 +6,24 @@ from datetime import datetime, timedelta, timezone
 
 VN = timezone(timedelta(hours=7), "Asia/Ho_Chi_Minh")
 
+ENTRY_TAG_LABELS_VI = {
+    "XU_HUONG_TANG_EMA_RSI": "Xu hướng tăng EMA + RSI",
+    "BAT_NHIP_HOI_BOLLINGER_RSI": "Bắt nhịp hồi Bollinger + RSI",
+    "TIN_HIEU_CHINH": "Tín hiệu kỹ thuật chính",
+}
+
+EXIT_REASON_LABELS_VI = {
+    "roi": "Chốt lời theo mục tiêu (ROI)",
+    "stop_loss": "Cắt lỗ bảo vệ vốn (Stop-Loss)",
+    "stoploss_on_exchange": "Cắt lỗ cứng trên sàn (Hard Stop-Loss)",
+    "trailing_stop_loss": "Chốt lời trượt (Trailing Stop)",
+    "exit_signal": "Tín hiệu báo bán kỹ thuật",
+    "CHOT_LOI_QUA_MUA_RSI_BB": "Chốt lời quá mua (RSI + Bollinger trên)",
+    "GAY_XU_HUONG_EMA20_50": "Gãy xu hướng ngắn hạn (EMA20 cắt xuống EMA50)",
+    "force_exit": "Bán đóng lệnh khẩn cấp (Force Exit)",
+    "emergency_exit": "Thoát lệnh khẩn cấp (Emergency Exit)",
+}
+
 
 def number(value):
     if isinstance(value, bool):
@@ -96,3 +114,17 @@ def report_allows(report, config, pair, now):
         return any(row["pair"] == pair and row["eligible"] is True for row in report["candidates"])
     except (KeyError, TypeError, ValueError):
         return False
+
+
+def format_entry_tag_vi(tag):
+    if not tag:
+        return ENTRY_TAG_LABELS_VI["TIN_HIEU_CHINH"]
+    text = str(tag).strip()
+    return f"{ENTRY_TAG_LABELS_VI[text]} ({text})" if text in ENTRY_TAG_LABELS_VI else text
+
+
+def format_exit_reason_vi(reason):
+    if not reason:
+        return "Không rõ lý do"
+    text = str(reason).strip()
+    return f"{EXIT_REASON_LABELS_VI[text]} ({text})" if text in EXIT_REASON_LABELS_VI else text

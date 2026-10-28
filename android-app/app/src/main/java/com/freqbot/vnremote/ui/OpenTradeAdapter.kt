@@ -12,8 +12,8 @@ import com.freqbot.vnremote.data.model.OpenTrade
 import java.util.Locale
 
 /**
- * RecyclerView Adapter hiển thị danh sách các lệnh đang mở bằng Tiếng Việt
- * kèm nút "Đóng Lệnh Này" (Force Exit từng lệnh đơn lẻ).
+ * RecyclerView Adapter hiển thị danh sách các lệnh đang mở 100% bằng Tiếng Việt
+ * kèm nút "Đóng lệnh này" (Force Exit từng lệnh đơn lẻ).
  */
 class OpenTradeAdapter(
     private val onForceExitSingleTrade: (OpenTrade) -> Unit
@@ -25,6 +25,16 @@ class OpenTradeAdapter(
         danhSachLenh.clear()
         danhSachLenh.addAll(dsMoi)
         notifyDataSetChanged()
+    }
+
+    private fun dichTinHieuMua(tag: String?): String {
+        val raw = tag?.trim().orEmpty()
+        return when (raw) {
+            "XU_HUONG_TANG_EMA_RSI" -> "Xu hướng tăng (EMA 20/50/200 + RSI)"
+            "BAT_NHIP_HOI_BOLLINGER_RSI" -> "Bắt nhịp hồi quá bán (Bollinger + RSI)"
+            "TIN_HIEU_CHINH", "" -> "Tín hiệu kỹ thuật chính"
+            else -> raw
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TradeViewHolder {
@@ -75,11 +85,12 @@ class OpenTradeAdapter(
                 lenh.giaHienTai
             )
 
-            val tagHienThi = lenh.lyDoMua?.ifBlank { "TÍN_HIỆU_CHÍNH" } ?: "TÍN_HIỆU_CHÍNH"
+            val tagHienThi = dichTinHieuMua(lenh.lyDoMua)
             tvMocCatLoVaTag.text = String.format(
                 Locale.US,
-                "• Mốc cắt lỗ cứng (Stop-Loss): %.4f USDT\n• Tín hiệu vào lệnh: %s  |  Mở lúc: %s",
+                "• Mốc cắt lỗ cứng (Stop-Loss): %.4f USDT (Cách giá hiện tại: %+.2f%%)\n• Lý do mua: %s\n• Thời điểm mở lệnh: %s",
                 lenh.giaCatLo,
+                lenh.khoangCachCatLo * 100,
                 tagHienThi,
                 lenh.thoiGianMo
             )

@@ -22,21 +22,23 @@ import com.freqbot.vnremote.data.api.FreqtradeApi
 import com.freqbot.vnremote.data.api.RetrofitClient
 import com.freqbot.vnremote.data.model.ForceExitRequest
 import com.freqbot.vnremote.data.model.OpenTrade
+import com.freqbot.vnremote.data.model.VnResearchReport
 import com.freqbot.vnremote.worker.RiskMonitorWorker
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import java.util.Locale
 import java.time.Instant
 import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 /**
  * Màn hình điều khiển chính 100% Tiếng Việt của ứng dụng FreqBot VN Remote:
  * - Hiển thị Tổng quan Lợi nhuận, Số dư USDT, Trạng thái Giáp bảo vệ rủi ro (Protections).
- * - Hiển thị Trạng thái Khung giờ giao dịch vàng (03:00-04:00 VN) & Đề xuất Coin từ AI (ChatGPT + Gemini).
+ * - Hiển thị Trạng thái Khung giờ giao dịch (mặc định 03:00-04:00 VN) & Đề xuất Coin từ AI (ChatGPT + Gemini).
  * - Danh sách RecyclerView các lệnh đang mở theo thời gian thực (tự động cập nhật mỗi 5 giây).
  * - Nút "Tạm dừng Mua mới", Nút "Bật lại Mua", và Nút đỏ "BÁN KHẨN CẤP TOÀN BỘ (PANIC SELL)".
  */
@@ -111,7 +113,7 @@ class MainActivity : AppCompatActivity() {
                     val res = api.tamDungMuaMoi()
                     Toast.makeText(
                         this@MainActivity,
-                        "⏸️ Đã bật chế độ: NGỪNG MUA MỚI (${res.trangThai})",
+                        "⏸️ Đã bật chế độ: TẠM DỪNG MUA MỚI (${res.trangThai})",
                         Toast.LENGTH_LONG
                     ).show()
                     taiDuLieuBangDieuKhien()
@@ -161,7 +163,7 @@ class MainActivity : AppCompatActivity() {
                 tvTrangThaiRuiRo.text =
                     "🔴 MẤT KẾT NỐI MÁY CHỦ BOT (${config.serverUrl})\n" +
                     "Chi tiết: ${e.message}\n" +
-                    "Hãy nhấn nút [⚙️ Máy chủ] để kiểm tra địa chỉ IP VPS / Tailscale."
+                    "Hãy nhấn nút [⚙️ Máy chủ] ở góc trên bên phải để kiểm tra địa chỉ IP VPS / Tailscale."
                 thongBaoLoi("Lỗi kết nối máy chủ Bot: ${e.message}")
             }
         }
@@ -173,6 +175,15 @@ class MainActivity : AppCompatActivity() {
             val soDu = api.laySoDuTaiKhoan()
             val lenhDangMo = api.layDanhSachLenhDangMo()
             val khoaRuiRo = api.kiemTraKhoaRuiRo()
+            val cauHinhBot = runCatching { api.layCauHinhBot() }.getOrNull()
+
+            // Cập nhật dòng trạng thái máy chủ kèm chế độ chạy
+            val config = RetrofitClient.docCauHinh(this)
+            if (cauHinhBot != null) {
+                val cheDo = if (cauHinhBot.chayThuGiaLap) "Chạy thử (Dry-Run)" else "Tiền thật (Live)"
+                val trangThaiMua = if (cauHinhBot.soLenhMoToiDa == 0) "⏸️ Đang tạm dừng Mua" else "🟢 Đang mở Mua"
+                tvDiaChiMayChu.text = "🌐 ${config.serverUrl}  •  $cheDo  •  $trangThaiMua"
+            }
 
             // 1. Hiển thị thẻ Tổng quan Lợi nhuận bằng Tiếng Việt
             val tongSoDaDong = loiNhuan.soLenhThang + loiNhuan.soLenhThua
@@ -183,9 +194,9 @@ class MainActivity : AppCompatActivity() {
             tvTongQuan.text = String.format(
                 Locale.US,
                 "📊 TỔNG QUAN HIỆU SUẤT GIAO DỊCH\n" +
-                "• Tổng lợi nhuận (cả lệnh mở): %+.2f USDT (%+.2f%%)\n" +
+                "• Tổng lợi nhuận (cả lệnh đang mở): %+.2f USDT (%+.2f%%)\n" +
                 "• Lợi nhuận đã chốt: %+.2f USDT\n" +
-                "• Thống kê lệnh: %d Thắng / %d Thua (Tỷ lệ thắng: %.1f%%)\n" +
+                "• Thống kê lệnh đóng: %d Thắng / %d Thua (Tỷ lệ thắng: %.1f%%)\n" +
                 "• Sụt giảm tối đa (Max Drawdown): %.2f%%",
                 loiNhuan.tongLaiUsdt,
                 loiNhuan.phanTramLaiTong,
@@ -212,12 +223,12 @@ class MainActivity : AppCompatActivity() {
             if (khoaRuiRo.soKhoaDangBat > 0) {
                 val chiTietKhoa = khoaRuiRo.danhSachKhoa.joinToString("\n") {
                     val phamVi = if (it.capBiKhoa == "*") "TOÀN BỘ BOT" else it.capBiKhoa
-                    "⚠️ Khóa [$phamVi] do: ${dichLyDoKhoa(it.lyDoKhoa)}\n   ⏳ Mở khóa lúc: ${it.thoiGianMoKhoa}"
+                    "⚠️ Đang khóa [$phamVi] do: ${dichLyDoKhoa(it.lyDoKhoa)}\n   ⏳ Mở khóa lúc: ${it.thoiGianMoKhoa}"
                 }
                 tvTrangThaiRuiRo.text = "🛡️ GIÁP BẢO VỆ RỦI RO ĐANG KÍCH HOẠT:\n$chiTietKhoa"
             } else {
                 tvTrangThaiRuiRo.text =
-                    "🟢 TRẠNG THÁI AN TOÀN: Không có khóa rủi ro nào kích hoạt. Chưa chạm hạn mức cắt lỗ ngày."
+                    "🟢 TRẠNG THÁI AN TOÀN: Không có khóa rủi ro nào kích hoạt. Bộ giáp bảo vệ (MaxDrawdown, StoplossGuard) và Cắt lỗ cứng (-3%) trên sàn đang trực chiến."
             }
 
             // 4. Cập nhật danh sách lệnh đang mở lên RecyclerView
@@ -241,47 +252,133 @@ class MainActivity : AppCompatActivity() {
                         !now.isBefore(OffsetDateTime.parse(baoCaoAi.thoiDiemTao).toInstant()) &&
                         now.isBefore(OffsetDateTime.parse(baoCaoAi.thoiDiemHetHan).toInstant())
                 }.getOrDefault(false)
-                val trangThaiGio = if (baoCaoAi.dangTrongKhungGioMua) {
-                    "Trong khung mua cấu hình tại thời điểm lấy báo cáo"
-                } else {
-                    "Ngoài khung mua tại thời điểm lấy báo cáo; vẫn canh thoát 24/7"
-                }
-                val topCoins = baoCaoAi.danhSachCoin.take(3).joinToString("\n") { c ->
-                    val bieuTuong = if (!baoCaoAi.duLieuGiaLap && conHan && c.duDieuKienMua) "✅" else "⛔"
-                    val nhanDinh = c.phieuBauAi.entries.joinToString(", ") { (nguon, phieu) ->
-                        "${nguon.uppercase()}: ${phieu.hanhDong} (${(phieu.doTuTin * 100).toInt()}%)"
+
+                val trangThaiGio = tinhTrangThaiKhungGioVn(baoCaoAi)
+                val cheDoAiVi = dichCheDoAi(baoCaoAi.cheDoAi)
+
+                val topCoins = baoCaoAi.danhSachCoin.take(4).joinToString("\n\n") { c ->
+                    val bieuTuong = if (!baoCaoAi.duLieuGiaLap && conHan && c.duDieuKienMua) "✅ Đủ điều kiện" else "⛔ Đứng ngoài"
+                    val nhanDinh = c.phieuBauAi.entries.joinToString("\n   ") { (nguon, phieu) ->
+                        val tenAi = dichTenNguonAi(nguon)
+                        val hanhDongVi = dichHanhDongAi(phieu.hanhDong)
+                        "• $tenAi: $hanhDongVi (Độ tự tin ${(phieu.doTuTin * 100).toInt()}%) — ${phieu.lyDo}"
                     }
+                    val xuHuongVi = dichTrangThaiThiTruong(c.trangThaiThiTruong)
                     String.format(
                         Locale.US,
-                        "%s %s (Điểm: %.1f/100 | RSI: %.1f | %s)\n   💡 AI: %s",
-                        bieuTuong,
+                        "🔹 %s [%s] — Điểm kỹ thuật: %.1f/100\n" +
+                        "   • RSI(14): %.1f | Xu hướng: %s | Spread: %.3f%%\n" +
+                        "   %s",
                         c.capCoin,
+                        bieuTuong,
                         c.diemKyThuat,
                         c.rsi14,
-                        c.trangThaiThiTruong,
-                        nhanDinh.ifEmpty { "Đang phân tích" }
+                        xuHuongVi,
+                        c.chenhLechGia * 100,
+                        nhanDinh.ifEmpty { "• Nhận định AI: Chưa bật hoặc đang chờ phân tích" }
                     )
                 }
+
                 tvCoVanAi.text =
-                    "NGHIÊN CỨU AI (${baoCaoAi.sanGiaoDich.uppercase()})\n" +
-                    (if (baoCaoAi.duLieuGiaLap) "DỮ LIỆU GIẢ LẬP — không phải nhận định AI thật\n" else "") +
-                    (if (conHan) "Báo cáo còn hạn\n" else "Báo cáo hết hạn hoặc không hợp lệ\n") +
-                    "• $trangThaiGio\n" +
-                    topCoins + "\nĐiểm/confidence không phải xác suất sinh lời."
+                    "🧠 PHÂN TÍCH THỊ TRƯỜNG & CỐ VẤN AI (SÀN ${baoCaoAi.sanGiaoDich.uppercase()})\n" +
+                    (if (baoCaoAi.duLieuGiaLap) "⚠️ DỮ LIỆU GIẢ LẬP — Chỉ dùng thử giao diện, không phải nhận định AI thật\n" else "") +
+                    "• Trạng thái báo cáo: ${if (conHan) "🟢 Còn hạn hiệu lực" else "🔴 Đã hết hạn / Không hợp lệ"} | Chế độ: $cheDoAiVi\n" +
+                    "• Khung giờ giao dịch: $trangThaiGio\n\n" +
+                    topCoins + "\n\n" +
+                    "ℹ️ Lưu ý: Điểm số kỹ thuật và độ tự tin của AI chỉ mang tính tham khảo, không phải cam kết xác suất sinh lời."
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Exception) {
-                tvCoVanAi.text = "Chưa lấy được báo cáo nghiên cứu. Endpoint AI hiện chỉ có ở mock; Freqtrade gốc không cung cấp endpoint này."
+                tvCoVanAi.text =
+                    "🧠 PHÂN TÍCH THỊ TRƯỜNG & CỐ VẤN AI\n" +
+                    "• Máy chủ Freqtrade gốc không mở đường dẫn /api/v1/vn_research (chỉ có trên máy chủ giả lập).\n" +
+                    "• Bot trên máy chủ vẫn tự động đọc tệp user_data/research/latest.json để kiểm duyệt lệnh mua mới."
             }
         } catch (e: Exception) {
             // Bỏ qua lỗi mạng thoáng qua trong vòng lặp 5 giây
         }
     }
 
+    private fun tinhTrangThaiKhungGioVn(baoCao: VnResearchReport): String {
+        if (!baoCao.batGioiHanKhungGio) {
+            return "Mở mua mới 24/7 (Không giới hạn khung giờ)"
+        }
+        val windows = baoCao.danhSachKhungGio
+        if (windows.isEmpty()) {
+            return if (baoCao.dangTrongKhungGioMua) {
+                "🟢 Đang trong khung giờ mua mới (Giờ VN)"
+            } else {
+                "⏸️ Ngoài khung giờ mua mới; vẫn canh chốt lời/cắt lỗ 24/7"
+            }
+        }
+        val nowVn = OffsetDateTime.now(ZoneOffset.ofHours(7))
+        val weekday = nowVn.dayOfWeek.value - 1 // Thứ Hai = 0 .. Chủ Nhật = 6
+        val currentMinute = nowVn.hour * 60 + nowVn.minute
+
+        val dangMo = windows.any { w ->
+            val pStart = w.batDau.split(":")
+            val pEnd = w.ketThuc.split(":")
+            if (pStart.size != 2 || pEnd.size != 2) return@any false
+            val start = pStart[0].toInt() * 60 + pStart[1].toInt()
+            val end = pEnd[0].toInt() * 60 + pEnd[1].toInt()
+            if (start < end) {
+                w.cacNgayTrongTuan.contains(weekday) && currentMinute in start until end
+            } else if (start > end) {
+                (currentMinute >= start && w.cacNgayTrongTuan.contains(weekday)) ||
+                    (currentMinute < end && w.cacNgayTrongTuan.contains((weekday + 6) % 7))
+            } else {
+                false
+            }
+        }
+        val dsKhung = windows.joinToString(", ") { "${it.batDau}–${it.ketThuc}" }
+        return if (dangMo) {
+            "🟢 Đang TRONG khung giờ mua ($dsKhung VN)"
+        } else {
+            "⏸️ Đang NGOÀI khung giờ mua ($dsKhung VN); vẫn canh thoát lệnh 24/7"
+        }
+    }
+
+    private fun dichTenNguonAi(provider: String): String {
+        return when (provider.lowercase()) {
+            "openai" -> "ChatGPT"
+            "gemini" -> "Google Gemini"
+            else -> provider.uppercase()
+        }
+    }
+
+    private fun dichHanhDongAi(action: String): String {
+        return when (action.lowercase()) {
+            "consider" -> "🟢 Nên xem xét mua"
+            "avoid" -> "🔴 Tránh giao dịch"
+            "wait" -> "🟡 Chờ đợi thêm"
+            else -> action
+        }
+    }
+
+    private fun dichTrangThaiThiTruong(regime: String): String {
+        return when (regime) {
+            "TĂNG_MẠNH" -> "Tăng mạnh"
+            "TĂNG_ỔN_ĐỊNH" -> "Tăng ổn định"
+            "XU_HƯỚNG_YẾU" -> "Xu hướng yếu / Đi ngang"
+            "THANH_KHOẢN_THẤP" -> "Thanh khoản thấp / Spread rộng"
+            "BIẾN_ĐỘNG_CAO" -> "Biến động mạnh bất thường"
+            else -> regime.ifBlank { "Chưa xác định" }
+        }
+    }
+
+    private fun dichCheDoAi(mode: String): String {
+        return when (mode.lowercase()) {
+            "off" -> "Tắt AI (Chỉ lọc kỹ thuật)"
+            "advisory" -> "Tham khảo (Advisory)"
+            "required" -> "Bắt buộc đồng thuận AI (Required)"
+            else -> mode
+        }
+    }
+
     private fun dichLyDoKhoa(reason: String): String {
         return when {
-            reason.contains("MaxDrawdown", true) -> "Chạm hạn mức lỗ tối đa trong ngày (MaxDrawdown)"
-            reason.contains("StoplossGuard", true) -> "Dính chuỗi lệnh cắt lỗ liên tiếp (StoplossGuard)"
+            reason.contains("MaxDrawdown", true) -> "Chạm hạn mức sụt giảm trên lịch sử lệnh đóng (MaxDrawdown)"
+            reason.contains("StoplossGuard", true) -> "Chạm giới hạn số lệnh cắt lỗ trong kỳ (StoplossGuard)"
             reason.contains("CooldownPeriod", true) -> "Đang nghỉ ngơi sau khi đóng lệnh (CooldownPeriod)"
             reason.contains("LowProfitPairs", true) -> "Cách ly cặp coin hiệu suất kém (LowProfitPairs)"
             else -> reason

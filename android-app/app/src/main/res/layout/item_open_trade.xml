@@ -36,7 +36,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="38dp"
                 android:backgroundTint="#EF4444"
-                android:text="Đóng lệnh này"
+                android:text="@string/btn_close_single_trade"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
                 android:textSize="12sp" />
@@ -66,7 +66,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:lineSpacingExtra="3dp"
-            android:text="• Mốc cắt lỗ cứng (Stop-Loss): 65960.0000 USDT\n• Tín hiệu: XU_HUONG_TANG_EMA_RSI"
+            android:text="• Mốc cắt lỗ cứng (Stop-Loss): 65960.0000 USDT\n• Tín hiệu: Xu hướng tăng EMA20 > EMA50 > EMA200 + RSI(14) thuận lợi"
             android:textColor="#94A3B8"
             android:textSize="12sp" />
 

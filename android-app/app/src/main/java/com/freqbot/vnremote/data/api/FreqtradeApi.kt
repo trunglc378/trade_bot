@@ -30,19 +30,23 @@ interface FreqtradeApi {
     @GET("api/v1/locks")
     suspend fun kiemTraKhoaRuiRo(): ProtectionLocksResponse
 
-    // 6. Lấy báo cáo Phân tích Thị trường, Khung giờ vàng & Đề xuất Coin từ AI (ChatGPT + Gemini)
+    // 6. Lấy thông tin cấu hình trạng thái vận hành hiện tại của Bot
+    @GET("api/v1/show_config")
+    suspend fun layCauHinhBot(): BotConfigResponse
+
+    // 7. Lấy báo cáo Phân tích Thị trường, Khung giờ & Đề xuất Coin từ AI (ChatGPT + Gemini)
     @GET("api/v1/vn_research")
     suspend fun layBaoCaoNghienCuuAi(): VnResearchReport
 
-    // 7. Tạm dừng mua thêm lệnh mới (chỉ canh chốt lời/cắt lỗ lệnh cũ)
+    // 8. Tạm dừng mua thêm lệnh mới (chỉ canh chốt lời/cắt lỗ lệnh cũ)
     @POST("api/v1/stopbuy")
     suspend fun tamDungMuaMoi(): StatusMsgResponse
 
-    // 8. Khởi động lại chế độ mua bán bình thường
+    // 9. Khởi động lại chế độ mua bán bình thường
     @POST("api/v1/reload_config")
     suspend fun khoiDongLaiBot(): StatusMsgResponse
 
-    // 9. BÁN KHẨN CẤP (Đóng 1 lệnh hoặc toàn bộ lệnh ngay lập tức theo giá thị trường)
+    // 10. BÁN KHẨN CẤP (Đóng 1 lệnh hoặc toàn bộ lệnh ngay lập tức theo giá thị trường)
     @POST("api/v1/forceexit")
     suspend fun banKhanCap(
         @Body request: ForceExitRequest

@@ -85,7 +85,18 @@ data class StatusMsgResponse(
 )
 
 /**
- * 7. Báo cáo Phân tích Thị trường & Đề xuất Coin từ Đa nguồn AI (/api/v1/vn_research)
+ * 7. Cấu hình trạng thái vận hành của Bot (/api/v1/show_config)
+ */
+data class BotConfigResponse(
+    @SerializedName("bot_name") val tenBot: String = "FreqBot_VN_Remote",
+    @SerializedName("state") val trangThaiBot: String = "running",
+    @SerializedName("dry_run") val chayThuGiaLap: Boolean = true,
+    @SerializedName("strategy") val tenChienLuoc: String = "VnSmartTrendStrategy",
+    @SerializedName("max_open_trades") val soLenhMoToiDa: Int = 4
+)
+
+/**
+ * 8. Báo cáo Phân tích Thị trường & Đề xuất Coin từ Đa nguồn AI (/api/v1/vn_research)
  */
 data class VnResearchReport(
     @SerializedName("schema_version") val phienBan: Int = 0,
@@ -95,16 +106,27 @@ data class VnResearchReport(
     @SerializedName("exchange") val sanGiaoDich: String = "binance",
     @SerializedName("vn_time") val gioVietNam: String = "",
     @SerializedName("in_trading_session") val dangTrongKhungGioMua: Boolean = false,
+    @SerializedName("schedule_enabled") val batGioiHanKhungGio: Boolean = true,
+    @SerializedName("schedule_windows") val danhSachKhungGio: List<ScheduleWindow> = emptyList(),
     @SerializedName("mode") val cheDoAi: String = "advisory",
     @SerializedName("candidates") val danhSachCoin: List<VnResearchCandidate> = emptyList()
+)
+
+data class ScheduleWindow(
+    @SerializedName("start") val batDau: String = "03:00",
+    @SerializedName("end") val ketThuc: String = "04:00",
+    @SerializedName("weekdays") val cacNgayTrongTuan: List<Int> = listOf(0, 1, 2, 3, 4, 5, 6)
 )
 
 data class VnResearchCandidate(
     @SerializedName("pair") val capCoin: String,
     @SerializedName("score") val diemKyThuat: Double = 0.0,
     @SerializedName("rsi_14") val rsi14: Double = 50.0,
+    @SerializedName("spread") val chenhLechGia: Double = 0.0,
+    @SerializedName("hour_change") val bienDong1Gio: Double = 0.0,
     @SerializedName("regime") val trangThaiThiTruong: String = "",
     @SerializedName("eligible") val duDieuKienMua: Boolean = false,
+    @SerializedName("reasons") val lyDoTuChoi: List<String> = emptyList(),
     @SerializedName("ai_votes") val phieuBauAi: Map<String, AiVoteDetail> = emptyMap()
 )
 
@@ -115,7 +137,7 @@ data class AiVoteDetail(
 )
 
 /**
- * 8. Cấu hình kết nối máy chủ lưu trong SharedPreferences
+ * 9. Cấu hình kết nối máy chủ lưu trong SharedPreferences
  */
 data class ServerConfig(
     val serverUrl: String,

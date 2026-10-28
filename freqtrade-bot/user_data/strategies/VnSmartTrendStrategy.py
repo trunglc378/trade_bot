@@ -7,13 +7,10 @@ Thuộc Dự án: Hệ thống Giao dịch Tự động & Ứng dụng Điều k
 
 Tính năng cốt lõi:
 1. Kết hợp Đa chỉ báo: EMA (20, 50, 200) + RSI (14) + Bollinger Bands (20, 2.0) + Bộ lọc Khối lượng (Volume SMA 20).
-2. Cắt lỗ cứng (-3%) kèm Cắt lỗ trượt khóa lợi nhuận (Trailing Stop).
-3. Tích hợp Bộ 4 Lớp Giáp Bảo Vệ Vốn Tự Động (Protections):
-   - MaxDrawdown (Khóa toàn bộ Bot 12h nếu lỗ ngày vượt 5%)
-   - StoplossGuard (Khóa toàn bộ Bot 6h nếu dính 3 lệnh cắt lỗ liên tiếp trong 6h)
-   - LowProfitPairs (Cách ly cặp coin hiệu suất kém trong 6h)
-   - CooldownPeriod (Nghỉ 30 phút sau khi đóng lệnh trên 1 cặp coin)
-4. Luồng thông báo đẩy 100% Tiếng Việt rõ ràng khi Vào lệnh (confirm_trade_entry) và Thoát lệnh (confirm_trade_exit).
+2. Bộ lọc Khung Giờ Giao Dịch theo Múi Giờ Việt Nam (UTC+7, mặc định 03:00-04:00 sáng chỉ lọc chiều Mua mới; canh Thoát lệnh 24/7).
+3. Phân bổ Vốn Động theo Rủi ro (stake_size) + Kiểm tra Độ lệch giá khớp & Spread + Hội đồng Cố vấn AI (ChatGPT & Gemini).
+4. Cắt lỗ cứng (-3%) kèm Cắt lỗ trượt khóa lợi nhuận (Trailing Stop) và Bộ 4 Lớp Giáp Bảo Vệ Vốn Tự Động (Protections).
+5. Luồng thông báo đẩy 100% Tiếng Việt rõ ràng khi Vào lệnh (confirm_trade_entry) và Thoát lệnh (confirm_trade_exit).
 """
 
 from datetime import datetime, timedelta
@@ -29,7 +26,15 @@ from freqtrade.strategy import IStrategy, IntParameter, DecimalParameter
 from freqtrade.persistence import Trade
 import talib.abstract as ta
 import freqtrade.vendor.qtpylib.indicators as qtpylib
-from vn_support import in_session, number, report_allows, spread_ratio, stake_size
+from vn_support import (
+    format_entry_tag_vi,
+    format_exit_reason_vi,
+    in_session,
+    number,
+    report_allows,
+    spread_ratio,
+    stake_size,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +42,7 @@ logger = logging.getLogger(__name__)
 class VnSmartTrendStrategy(IStrategy):
     """
     Chiến lược giao dịch theo xu hướng thông minh kết hợp bắt nhịp hồi quá bán,
-    tích hợp đầy đủ quản trị rủi ro đa tầng và báo cáo Tiếng Việt.
+    tích hợp đầy đủ quản trị rủi ro đa tầng, bộ lọc khung giờ VN, cố vấn AI và báo cáo Tiếng Việt.
     """
 
     INTERFACE_VERSION = 3
@@ -76,9 +81,13 @@ class VnSmartTrendStrategy(IStrategy):
     # Số nến lịch sử cần tải khi khởi động để tính chuẩn EMA 200
     startup_candle_count: int = 600
 
+    # Bộ nhớ đệm nhẹ cho báo cáo AI theo dấu thời gian sửa đổi tệp (mtime_ns)
+    _report_cache_key: Optional[tuple] = None
+    _report_cache_data: Optional[dict] = None
+
     def bot_start(self, **kwargs) -> None:
         policy = self.config["vn_policy"]
-        # Validate schedules even if startup happens outside the configured window.
+        # Kiểm tra tính hợp lệ của lịch giao dịch ngay khi khởi động Bot
         in_session(datetime.now().astimezone(), policy["schedule"])
         if self._historical() and policy["research"]["mode"] == "required":
             raise ValueError("AI required cannot use today's research in backtests. Use advisory/off baseline.")
@@ -91,7 +100,17 @@ class VnSmartTrendStrategy(IStrategy):
         try:
             self.dp.send_msg(message)
         except Exception:
-            logger.warning("Không gửi được thông báo; tiếp tục xử lý lệnh.")
+            logger.warning("Không gửi được thông báo Tiếng Việt; tiếp tục xử lý lệnh.")
+
+    def _read_latest_report(self, path: Path) -> dict:
+        stat = path.stat()
+        cache_key = (str(path), stat.st_mtime_ns, stat.st_size)
+        if self._report_cache_key == cache_key and self._report_cache_data is not None:
+            return self._report_cache_data
+        report = json.loads(path.read_text(encoding="utf-8"))
+        self._report_cache_key = cache_key
+        self._report_cache_data = report
+        return report
 
     def _stake(self, proposed, maximum, minimum):
         equity = self.wallets.get_total_stake_amount()
@@ -106,7 +125,7 @@ class VnSmartTrendStrategy(IStrategy):
                 return 0.0
             return self._stake(proposed_stake, max_stake, min_stake)
         except Exception:
-            logger.warning("Không tính được giới hạn vốn; từ chối mua.")
+            logger.warning("Không tính được giới hạn vốn động; từ chối mua %s.", pair)
             return 0.0
 
     def _entry_allowed(self, pair, amount, rate, now, side):
@@ -117,7 +136,7 @@ class VnSmartTrendStrategy(IStrategy):
             cost = number(amount) * number(rate)
             if cost <= 0 or cost > self._stake(cost, cost, None) + 1e-8:
                 return False
-            # Historical OHLCV cannot reconstruct orderbooks or today's AI opinions.
+            # Chế độ Backtest/Hyperopt không có sổ lệnh trực tiếp hay báo cáo AI hiện tại
             if self._historical():
                 return policy["research"]["mode"] != "required"
             frame, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
@@ -132,12 +151,12 @@ class VnSmartTrendStrategy(IStrategy):
                 return False
             if policy["research"]["mode"] != "off":
                 path = Path(self.config["user_data_dir"]) / "research" / "latest.json"
-                report = json.loads(path.read_text(encoding="utf-8"))
+                report = self._read_latest_report(path)
                 if not report_allows(report, self.config, pair, now):
                     return False
             return True
         except Exception:
-            logger.warning("Dữ liệu/chính sách không hợp lệ; từ chối mua %s.", pair)
+            logger.warning("Dữ liệu/chính sách không hợp lệ; từ chối mở lệnh mua %s.", pair)
             return False
 
     # Tham số có thể tối ưu hóa bằng Hyperopt
@@ -158,7 +177,7 @@ class VnSmartTrendStrategy(IStrategy):
                 "stop_duration_candles": 6
             },
             {
-                # 2. Hạn mức lỗ ngày tối đa: Nếu lỗ vượt 5% trong 24h (288 nến 5m) -> Khóa toàn bộ Bot 12h
+                # 2. Hạn mức sụt giảm trên lịch sử lệnh đóng trong cửa sổ trượt 24h (288 nến 5m): vượt 5% -> Khóa Bot 12h
                 "method": "MaxDrawdown",
                 "lookback_period_candles": 288,
                 "trade_limit": 2,
@@ -166,7 +185,7 @@ class VnSmartTrendStrategy(IStrategy):
                 "max_allowed_drawdown": 0.05
             },
             {
-                # 3. Chống sập dây chuyền: Nếu dính 3 lệnh cắt lỗ liên tiếp trong 6h (72 nến) -> Khóa Bot 6h
+                # 3. Chống sập dây chuyền: Nếu có 3 lệnh cắt lỗ trong cửa sổ 6h (72 nến) -> Khóa Bot 6h
                 "method": "StoplossGuard",
                 "lookback_period_candles": 72,
                 "trade_limit": 3,
@@ -244,9 +263,11 @@ class VnSmartTrendStrategy(IStrategy):
             "BAT_NHIP_HOI_BOLLINGER_RSI",
         )
 
-        # Candle dates are UTC opening times; orders can start at candle CLOSE.
+        # Thời gian nến là thời điểm MỞ nến (UTC); tín hiệu chỉ hoàn tất tại thời điểm ĐÓNG nến (+5 phút)
+        schedule = self.config["vn_policy"]["schedule"]
         sessions = (pd.to_datetime(dataframe["date"], utc=True) + pd.Timedelta(minutes=5)).map(
-            lambda date: in_session(date.to_pydatetime(), self.config["vn_policy"]["schedule"]))
+            lambda date: in_session(date.to_pydatetime(), schedule)
+        )
         dataframe.loc[~sessions, ["enter_long", "enter_tag"]] = (0, "")
 
         return dataframe
@@ -300,12 +321,13 @@ class VnSmartTrendStrategy(IStrategy):
         if not self._entry_allowed(pair, amount, rate, current_time, side):
             return False
         if self.dp:
+            gia_tri_usdt = number(amount) * number(rate)
             self._notify(
                 f"🟢 [VÀO LỆNH MỚI]\n"
                 f"• Cặp giao dịch: {pair}\n"
                 f"• Giá mua dự kiến: {rate:.4f} USDT\n"
-                f"• Khối lượng: {amount:.6f}\n"
-                f"• Lý do mua (Tín hiệu): {entry_tag or 'TIN_HIEU_CHINH'}\n"
+                f"• Khối lượng: {amount:.6f} (~{gia_tri_usdt:.2f} USDT)\n"
+                f"• Lý do mua (Tín hiệu): {format_entry_tag_vi(entry_tag)}\n"
                 f"• Ngưỡng cắt lỗ bảo vệ: {self.stoploss * 100:.1f}%"
             )
         return True
@@ -332,7 +354,7 @@ class VnSmartTrendStrategy(IStrategy):
                 f"{bieu_tuong} {pair}\n"
                 f"• Giá mua vào: {trade.open_rate:.4f} USDT\n"
                 f"• Giá bán ra: {rate:.4f} USDT\n"
-                f"• Tỷ lệ Lãi/Lỗ: {profit_ratio * 100:.2f}%\n"
-                f"• Lý do đóng: {exit_reason}"
+                f"• Tỷ lệ Lãi/Lỗ: {profit_ratio * 100:+.2f}%\n"
+                f"• Lý do đóng: {format_exit_reason_vi(exit_reason)}"
             )
         return True

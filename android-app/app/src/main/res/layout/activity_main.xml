@@ -24,7 +24,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="🤖 FreqBot VN Remote"
+                android:text="@string/title_app_header"
                 android:textColor="#F8FAFC"
                 android:textSize="22sp"
                 android:textStyle="bold" />
@@ -34,7 +34,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:backgroundTint="#334155"
-                android:text="⚙️ Máy chủ"
+                android:text="@string/btn_server_config"
                 android:textAllCaps="false"
                 android:textColor="#F8FAFC"
                 android:textSize="13sp" />
@@ -45,7 +45,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            android:text="🌐 Máy chủ: http://10.0.2.2:8080/"
+            android:text="@string/default_server_status"
             android:textColor="#94A3B8"
             android:textSize="12sp" />
 
@@ -64,7 +64,7 @@
                 android:layout_height="wrap_content"
                 android:lineSpacingExtra="4dp"
                 android:padding="14dp"
-                android:text="🔄 Đang kiểm tra trạng thái Giáp bảo vệ rủi ro..."
+                android:text="@string/loading_risk_status"
                 android:textColor="#34D399"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -85,7 +85,7 @@
                 android:layout_height="wrap_content"
                 android:lineSpacingExtra="5dp"
                 android:padding="14dp"
-                android:text="📊 TỔNG QUAN HIỆU SUẤT GIAO DỊCH\nĐang tải dữ liệu lợi nhuận từ Freqtrade..."
+                android:text="@string/loading_profit_summary"
                 android:textColor="#E2E8F0"
                 android:textSize="14sp" />
         </androidx.cardview.widget.CardView>
@@ -105,12 +105,12 @@
                 android:layout_height="wrap_content"
                 android:lineSpacingExtra="5dp"
                 android:padding="14dp"
-                android:text="💼 SỐ DƯ TÀI KHOẢN (USDT)\nĐang tải số dư..."
+                android:text="@string/loading_balance"
                 android:textColor="#38BDF8"
                 android:textSize="14sp" />
         </androidx.cardview.widget.CardView>
 
-        <!-- Thẻ 4: Khung Giờ Vàng (03:00-04:00 VN) & Đề Xuất Coin Đa Nguồn AI -->
+        <!-- Thẻ 4: Khung Giờ Giao Dịch (03:00-04:00 VN) & Đề Xuất Coin Đa Nguồn AI -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -125,7 +125,7 @@
                 android:layout_height="wrap_content"
                 android:lineSpacingExtra="5dp"
                 android:padding="14dp"
-                android:text="NGHIÊN CỨU THỊ TRƯỜNG &amp; AI\nChờ báo cáo; đồng bộ qua mock nếu máy chủ hỗ trợ."
+                android:text="@string/loading_ai_research"
                 android:textColor="#FDE68A"
                 android:textSize="13sp" />
         </androidx.cardview.widget.CardView>
@@ -144,7 +144,7 @@
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
                 android:backgroundTint="#D97706"
-                android:text="⏸️ Tạm dừng Mua"
+                android:text="@string/btn_pause_buy"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold" />
@@ -156,7 +156,7 @@
                 android:layout_weight="1"
                 android:layout_marginStart="6dp"
                 android:backgroundTint="#059669"
-                android:text="▶️ Bật lại Mua"
+                android:text="@string/btn_resume_buy"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold" />
@@ -168,7 +168,7 @@
             android:layout_height="56dp"
             android:layout_marginBottom="16dp"
             android:backgroundTint="#DC2626"
-            android:text="🚨 CẮT LỖ / BÁN KHẨN CẤP TOÀN BỘ (PANIC SELL)"
+            android:text="@string/btn_panic_sell"
             android:textAllCaps="false"
             android:textColor="#FFFFFF"
             android:textSize="15sp"
@@ -179,7 +179,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:text="📈 DANH SÁCH LỆNH ĐANG MỞ (CẬP NHẬT 5 GIÂY/LẦN)"
+            android:text="@string/section_open_trades"
             android:textColor="#F8FAFC"
             android:textSize="15sp"
             android:textStyle="bold" />
@@ -190,7 +190,7 @@
             android:layout_height="wrap_content"
             android:background="#1E293B"
             android:padding="16dp"
-            android:text="Hiện không có lệnh nào đang mở (100% vốn đang ở USDT)."
+            android:text="@string/empty_open_trades"
             android:textColor="#94A3B8"
             android:textSize="14sp"
             android:visibility="gone" />

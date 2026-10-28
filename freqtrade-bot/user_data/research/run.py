@@ -186,6 +186,19 @@ def atomic_write(path, data):
             os.unlink(name)
 
 
+def prune_history(history_dir, max_files=288):
+    """Giữ tối đa max_files bản chụp lịch sử gần nhất (mặc định 288 tệp ~ 24h với chu kỳ 5p)."""
+    history_dir = Path(history_dir)
+    if not history_dir.is_dir() or max_files < 1:
+        return
+    files = sorted(history_dir.glob("*.json"))
+    for old_file in files[:-max_files]:
+        try:
+            old_file.unlink()
+        except OSError:
+            pass
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, action="append", help="Later JSON files override earlier configs")
@@ -208,12 +221,15 @@ def main():
             exchange = getattr(ccxt, name)({"enableRateLimit": True, "timeout": 15000,
                                            "options": {"defaultType": "spot"}})
             report = build_report(config, exchange)
-            atomic_write(configs[0].parent / "research" / "latest.json", report)
-            atomic_write(configs[0].parent / "research" / "history" /
-                         (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f") + ".json"), report)
-            log.info("Snapshot saved: %s candidates, %s errors", len(report["candidates"]), len(report["errors"]))
+            research_dir = configs[0].parent / "research"
+            history_dir = research_dir / "history"
+            atomic_write(research_dir / "latest.json", report)
+            atomic_write(history_dir / (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f") + ".json"), report)
+            max_hist = int(config["vn_policy"]["research"].get("max_history_files", 288))
+            prune_history(history_dir, max_files=max_hist)
+            log.info("Đã lưu báo cáo nghiên cứu: %s cặp coin, %s lỗi nguồn", len(report["candidates"]), len(report["errors"]))
         except Exception as exc:
-            log.error("Research failed: %s", type(exc).__name__)
+            log.error("Lỗi chu kỳ nghiên cứu thị trường: %s", type(exc).__name__)
             if not args.loop:
                 return 1
         if not args.loop:

@@ -11,19 +11,19 @@
         <header class="top-bar">
             <div>
                 <h1>🤖 FreqBot VN Remote — Bảng Điều Khiển Giao Dịch & Cố Vấn AI</h1>
-                <p class="subtitle">Lõi Freqtrade (Binance / OKX) + Khung Giờ Vàng (03:00–04:00 VN) + Hội Đồng AI (ChatGPT & Gemini)</p>
+                <p class="subtitle">Lõi Freqtrade (Binance / OKX) + Khung Giờ Cấu Hình (03:00–04:00 VN) + Hội Đồng AI (ChatGPT & Gemini)</p>
             </div>
-            <div class="conn-badge" id="connStatus">⚪ Chưa kết nối</div>
+            <div class="conn-badge" id="connStatus">⚪ Chưa kết nối máy chủ Bot</div>
         </header>
 
         <!-- Khung cấu hình kết nối máy chủ Bot -->
         <section class="card config-bar">
             <div class="input-group">
-                <label>Địa chỉ API Freqtrade (VPS / Tailscale / Local):</label>
+                <label>Địa chỉ API Freqtrade (VPS / Tailscale / Máy cá nhân):</label>
                 <input type="text" id="botUrl" value="http://127.0.0.1:8080/api/v1" />
             </div>
             <div class="input-group">
-                <label>Tài khoản:</label>
+                <label>Tài khoản điều khiển:</label>
                 <input type="text" id="username" value="admin" />
             </div>
             <div class="input-group">
@@ -41,58 +41,60 @@
         <!-- Lưới 3 Thẻ Tổng Quan Tài Khoản -->
         <section class="grid-3">
             <div class="card">
-                <h3>📊 Tổng Quan Lợi Nhuận</h3>
+                <h3>📊 Tổng Quan Hiệu Suất Giao Dịch</h3>
                 <div class="metric-big" id="tongLaiUsdt">-- USDT</div>
-                <p id="chiTietLoiNhuan">Tỷ lệ thắng: --% | Max Drawdown: --%</p>
+                <p id="chiTietLoiNhuan">Tỷ lệ thắng: --% | Sụt giảm tối đa (Max Drawdown): --%</p>
             </div>
             <div class="card">
                 <h3>💼 Số Dư Tài Khoản (USDT)</h3>
                 <div class="metric-big text-blue" id="tongTaiSanUsdt">-- USDT</div>
-                <p id="chiTietSoDu">Vốn rảnh: -- USDT | Vốn trong lệnh: -- USDT</p>
+                <p id="chiTietSoDu">Vốn rảnh sẵn sàng mua: -- USDT | Vốn đang mở lệnh: -- USDT</p>
             </div>
             <div class="card">
-                <h3>⚡ Điều Khiển Khẩn Cấp</h3>
+                <h3>⚡ Điều Khiển Khẩn Cấp Từ Xa</h3>
                 <div class="action-buttons">
                     <button class="btn btn-warning" onclick="tamDungMuaMoi()">⏸️ Tạm Dừng Mua Mới</button>
                     <button class="btn btn-success" onclick="khoiDongLaiMua()">▶️ Bật Lại Mua</button>
-                    <button class="btn btn-danger" onclick="banKhanCapToanBo()">🚨 CẮT LỖ / BÁN KHẨN CẤP TOÀN BỘ (PANIC SELL)</button>
+                    <button class="btn btn-danger" onclick="banKhanCapToanBo()">🚨 CẮT LỖ / BÁN KHẨN CẤP TOÀN BỘ (THU HỒI USDT)</button>
                 </div>
             </div>
         </section>
 
-        <!-- Bảng Phân Tích Thị Trường, Khung Giờ Vàng & Đề Xuất Coin Đa Nguồn AI -->
+        <!-- Bảng Phân Tích Thị Trường, Khung Giờ & Đề Xuất Coin Đa Nguồn AI -->
         <section class="card" aria-labelledby="researchTitle">
             <div class="section-header">
                 <div>
-                    <h2 id="researchTitle">Phân tích thị trường, lịch mua & đề xuất AI</h2>
-                    <p class="subtitle">Kết hợp bộ lọc định lượng kỹ thuật (EMA/RSI/Spread/Volatility) và khuyến nghị độc lập từ ChatGPT (OpenAI) & Google Gemini. Bot chỉ giới hạn giờ mua mới, vẫn canh thoát lệnh 24/7.</p>
+                    <h2 id="researchTitle">🧠 Phân Tích Thị Trường, Khung Giờ Mua & Đề Xuất Coin Đa Nguồn AI</h2>
+                    <p class="subtitle">Kết hợp bộ lọc định lượng kỹ thuật (EMA/RSI/Chênh lệch giá/Biến động) và nhận định độc lập từ ChatGPT (OpenAI) & Google Gemini. Khung giờ chỉ lọc lệnh mua mới, vẫn canh chốt lời/cắt lỗ 24/7.</p>
                 </div>
                 <div class="action-buttons">
-                    <button class="btn btn-outline" onclick="dongBoNghienCuuTuServer()">Đồng bộ báo cáo từ mock</button>
-                    <label for="researchFile" class="btn btn-outline" style="cursor:pointer;">📂 Tải Tệp latest.json</label>
+                    <button class="btn btn-outline" onclick="dongBoNghienCuuTuServer()">🔄 Đồng Bộ Báo Cáo Từ Máy Chủ Giả Lập</button>
+                    <label for="researchFile" class="btn btn-outline" style="cursor:pointer;">📂 Chọn Tệp latest.json</label>
                     <input id="researchFile" type="file" accept=".json,application/json" style="display:none;">
                 </div>
             </div>
-            <p>03:00–04:00 VN là khung giờ ví dụ cần kiểm chứng, không bảo đảm lợi nhuận. Freqtrade thật dùng chọn tệp latest.json; dữ liệu giả lập được đánh dấu riêng.</p>
+            <p class="subtitle" style="margin-bottom: 10px;">
+                Lưu ý: Khung giờ 03:00–04:00 VN là cấu hình mẫu để kiểm chứng lịch sử (Backtest), không cam kết lợi nhuận cố định. Khi chạy Freqtrade thực tế, hãy chọn tệp <code>user_data/research/latest.json</code> để xem báo cáo; dữ liệu từ máy chủ giả lập sẽ được gắn nhãn cảnh báo riêng.
+            </p>
             <p id="researchStatus" role="status" style="margin-bottom: 12px; color: #38bdf8; font-weight: 600;">
-                Chưa tải báo cáo. Nhấn "Kết Nối & Đăng Nhập" hoặc chọn tệp user_data/research/latest.json.
+                Chưa tải báo cáo nghiên cứu. Nhấn "Kết Nối & Đăng Nhập" hoặc nhấn "Chọn Tệp latest.json".
             </p>
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
-                            <th>Cặp Coin</th>
+                            <th>Cặp Giao Dịch</th>
                             <th>Điểm Kỹ Thuật (/100)</th>
-                            <th>RSI (14) & Trạng Thái</th>
-                            <th>Spread</th>
-                            <th>Biến Động 1h</th>
+                            <th>Chỉ Số RSI (14) & Xu Hướng</th>
+                            <th>Chênh Lệch Giá (Spread)</th>
+                            <th>Biến Động 1 Giờ</th>
                             <th>Kết Quả Sàng Lọc</th>
                             <th>Nhận Định Đa Nguồn AI (ChatGPT & Gemini)</th>
                         </tr>
                     </thead>
                     <tbody id="researchRows">
                         <tr>
-                            <td colspan="7" class="empty-row">Nhấn "Kết Nối & Đăng Nhập" hoặc "Tải Tệp latest.json" để xem đề xuất Coin từ AI.</td>
+                            <td colspan="7" class="empty-row">Nhấn "Kết Nối & Đăng Nhập" hoặc "Chọn Tệp latest.json" để xem bảng chấm điểm kỹ thuật và đề xuất từ AI.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -102,7 +104,7 @@
         <!-- Bảng Danh Sách Lệnh Đang Mở -->
         <section class="card">
             <div class="section-header">
-                <h2>📈 Bảng Lệnh Đang Mở (Thời Gian Thực - Cập nhật 5 giây/lần)</h2>
+                <h2>📈 Danh Sách Lệnh Đang Mở (Thời Gian Thực - Tự Động Làm Mới 5 Giây/Lần)</h2>
                 <button class="btn btn-outline" onclick="thuNghiemKhoaRuiRo()">🛡️ Thử Nghiệm Bật/Tắt Khóa Rủi Ro</button>
             </div>
             <div class="table-responsive">
@@ -116,13 +118,13 @@
                             <th>Giá Hiện Tại</th>
                             <th>Lãi / Lỗ Tạm Tính</th>
                             <th>Mốc Cắt Lỗ Cứng (Stop-Loss)</th>
-                            <th>Tín Hiệu Mua</th>
+                            <th>Tín Hiệu Mua (Lý Do)</th>
                             <th>Hành Động</th>
                         </tr>
                     </thead>
                     <tbody id="bangLenhDangMo">
                         <tr>
-                            <td colspan="9" class="empty-row">Nhấn "Kết Nối & Đăng Nhập" để tải dữ liệu từ máy chủ Bot.</td>
+                            <td colspan="9" class="empty-row">Nhấn "Kết Nối & Đăng Nhập" để tải danh sách vị thế đang mở từ máy chủ Bot.</td>
                         </tr>
                     </tbody>
                 </table>

@@ -105,7 +105,7 @@ sequenceDiagram
 
 ## 3. Thiết Kế Chi Tiết Module Chính Sách & Toán Học Rủi Ro (`vn_support.py`)
 
-File [`freqtrade-bot/user_data/strategies/vn_support.py`](file:///d:/Project/trade_bot/freqtrade-bot/user_data/strategies/vn_support.py) chứa toàn bộ các hàm thuần túy (pure functions), không phụ thuộc mạng, dễ dàng kiểm thử đơn vị 100%:
+File [`freqtrade-bot/user_data/strategies/vn_support.py`](file:///e:/Project/trade_bot/freqtrade-bot/user_data/strategies/vn_support.py) chứa toàn bộ các hàm thuần túy (pure functions), không phụ thuộc mạng, dễ dàng kiểm thử đơn vị 100%:
 
 1. **`in_session(now, schedule)` — Bộ lọc Khung Giờ Giao Dịch theo Múi Giờ Việt Nam (`UTC+7`):**
    - Chuyển đổi mọi mốc thời gian có múi giờ (`aware(now)`) sang múi giờ `VN = timezone(timedelta(hours=7), "Asia/Ho_Chi_Minh")`.

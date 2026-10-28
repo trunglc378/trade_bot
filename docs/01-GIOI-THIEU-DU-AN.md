@@ -1,7 +1,7 @@
 # TÀI LIỆU GIỚI THIỆU DỰ ÁN (PROJECT INTRODUCTION)
 **Tên dự án:** Hệ thống Giao dịch Tiền điện tử Tự động, Phân tích AI Đa nguồn & Ứng dụng Điều khiển Từ xa Tiếng Việt (**FreqBot VN Remote**)<br>
 **Phiên bản:** 2.0.0<br>
-**Ngày cập nhật:** 27/10/2026<br>
+**Ngày cập nhật:** 28/10/2026<br>
 
 ---
 
@@ -30,7 +30,7 @@ flowchart LR
     subgraph AIResearch["Tầng Phân Tích Thị Trường & Cố Vấn Đa Nguồn AI"]
         SCAN["Bộ Sàng Lọc Kỹ Thuật & Thanh Khoản\n(research/run.py)"]
         GPT["OpenAI ChatGPT\n(JSON Schema Advice)"]
-        GEM["Google Gemini 3.8 Flash\n(JSON Schema Advice)"]
+        GEM["Google Gemini\n(JSON Schema Advice)"]
         SNAP["Bản Chụp Nghiên Cứu Ký SHA-256\n(user_data/research/latest.json)"]
     end
 
@@ -65,8 +65,8 @@ flowchart LR
 ```
 
 ### 2.1. Tầng Lõi Xử Lý Ngầm Đa Sàn (Freqtrade Headless Backend trên Binance & OKX)
-- Sử dụng **Freqtrade** chạy 24/7 trên máy chủ Linux VPS thông qua Docker, hỗ trợ chuyển đổi linh hoạt giữa **Binance** ([`config.json`](file:///d:/Project/trade_bot/freqtrade-bot/user_data/config.json)) và **OKX** ([`config-okx.json`](file:///d:/Project/trade_bot/freqtrade-bot/user_data/config-okx.json)).
-- Chiến lược định lượng [`VnSmartTrendStrategy.py`](file:///d:/Project/trade_bot/freqtrade-bot/user_data/strategies/VnSmartTrendStrategy.py) kết hợp module chính sách [`vn_support.py`](file:///d:/Project/trade_bot/freqtrade-bot/user_data/strategies/vn_support.py) kiểm soát chặt chẽ khung giờ giao dịch, phân bổ vốn động theo rủi ro và đối chiếu báo cáo AI trước khi vào lệnh.
+- Sử dụng **Freqtrade** chạy 24/7 trên máy chủ Linux VPS thông qua Docker, hỗ trợ chuyển đổi linh hoạt giữa **Binance** ([`config.json`](file:///e:/Project/trade_bot/freqtrade-bot/user_data/config.json)) và **OKX** ([`config-okx.json`](file:///e:/Project/trade_bot/freqtrade-bot/user_data/config-okx.json)).
+- Chiến lược định lượng [`VnSmartTrendStrategy.py`](file:///e:/Project/trade_bot/freqtrade-bot/user_data/strategies/VnSmartTrendStrategy.py) kết hợp module chính sách [`vn_support.py`](file:///e:/Project/trade_bot/freqtrade-bot/user_data/strategies/vn_support.py) kiểm soát chặt chẽ khung giờ giao dịch, phân bổ vốn động theo rủi ro và đối chiếu báo cáo AI trước khi vào lệnh.
 
 ### 2.2. Tầng Phân Tích Thị Trường & Đề Xuất Coin Đa Nguồn AI (`research/`)
 - Chạy độc lập dưới dạng dịch vụ chỉ đọc (`Read-Only Worker` — không giữ khóa đặt lệnh của sàn để đảm bảo an toàn bảo mật tuyệt đối).
@@ -75,24 +75,25 @@ flowchart LR
 - Tham vấn độc lập **OpenAI ChatGPT** và **Google Gemini** (model hỗ trợ structured output do tài khoản cho phép) để nhận khuyến nghị `consider` (xem xét mua), `avoid` (tránh giao dịch) hoặc `wait` (chờ đợi) kèm lý do phân tích bằng Tiếng Việt.
 
 ### 2.3. Tầng Giao Diện Điều Khiển Từ Xa Tiếng Việt (Android App & Web Dashboard)
-- **Ứng dụng Android (`FreqBot VN Remote`):** Hiển thị trạng thái lợi nhuận, số dư, khung giờ giao dịch vàng, nhận định đề xuất coin từ AI, danh sách lệnh mở và cảnh báo rủi ro chạy ngầm (`WorkManager`).
+- **Ứng dụng Android (`FreqBot VN Remote`):** Hiển thị trạng thái lợi nhuận, số dư, khung giờ giao dịch cấu hình, nhận định đề xuất coin từ AI, danh sách lệnh mở và cảnh báo rủi ro chạy ngầm (`WorkManager`).
 - **Giao diện Web Dashboard Tiếng Việt:** Theo dõi trực quan bảng lệnh mở, trạng thái khung giờ giao dịch và bảng phân tích chi tiết từng đồng coin kèm nhận định từ ChatGPT & Gemini.
 
 ---
 
 ## 3. Phạm Vi & Các Tính Năng Nổi Bật Của Hệ Thống
 
-1. **Bộ Lọc Khung Giờ Giao Dịch Vàng (`03:00 – 04:00` sáng giờ Việt Nam):**
+1. **Bộ Lọc Khung Giờ Giao Dịch Cấu Hình (`03:00 – 04:00` sáng giờ Việt Nam):**
    - Cấu hình linh hoạt một hoặc nhiều khung giờ trong ngày theo chuẩn múi giờ `Asia/Ho_Chi_Minh (UTC+7)`.
    - **Chỉ lọc lệnh Mua mới (`enter_long`)**: Ngoài khung giờ quy định, bot tuyệt đối không mở thêm vị thế mới để tránh nhiễu thị trường, nhưng **vẫn canh Chốt lời (`ROI`, `Trailing Stop`), Cắt lỗ (`Stop-Loss`) và Bán khẩn cấp 24/7**.
 2. **Đề Xuất Coin & Phân Tích Thị Trường Từ Đa Nguồn AI (`ChatGPT` + `Gemini`):**
-   - Bấm điểm kỹ thuật `0–100` và phân loại trạng thái thị trường (`TĂNG_ỔN_ĐỊNH`, `TÍCH_LŨY`, `BIẾN_ĐỘNG_CAO`, `THANH_KHOẢN_THẤP`).
-   - Cơ chế đồng thuận đa AI (`min_ai_votes`) và quyền phủ quyết (`Veto`: chỉ cần 1 mô hình AI cảnh báo `avoid` là tự động chặn mua cặp coin đó trong chế độ `required`).
+   - Chấm điểm kỹ thuật `0–100` và phân loại trạng thái thị trường (`Xu hướng tăng`, `Đi ngang tích lũy`, `Quá mua ngắn hạn`, `Giảm dưới EMA200`).
+   - Cơ chế đồng thuận đa AI (`min_ai_votes`) và quyền phủ quyết (`Veto`: chỉ cần 1 mô hình AI cảnh báo `avoid` là tự động chặn mua cặp coin đó trong chế độ `required` hoặc `advisory`).
 3. **Bảo Vệ Vốn Đa Tầng & Phân Bổ Vốn Động (`Multi-Layer Risk Management`):**
    - Tự động tính toán khối lượng vào lệnh (`stake_size`) sao cho mức lỗ tối đa khi chạm Stop-Loss cộng phí/trượt giá không vượt quá `0.5% – 2%` tổng vốn tài khoản, đồng thời giới hạn tổng vốn phơi nhiễm tối đa (`60%`).
    - Đặt lệnh cắt lỗ cứng trực tiếp trên máy chủ sàn (`stoploss_on_exchange: true`) kết hợp bộ 4 lớp giáp `Protections` (`MaxDrawdown`, `StoplossGuard`, `CooldownPeriod`, `LowProfitPairs`).
 4. **Bộ Đôi Nút Điều Khiển Khẩn Cấp (Emergency Controls) Trên Android & Web:**
    - **Nút "Tạm dừng Mua mới" (`/api/v1/stopbuy`)** và **Nút đỏ "Bán khẩn cấp toàn bộ - Panic Sell" (`/api/v1/forceexit`)** thu hồi toàn bộ vốn về `USDT` ngay lập tức.
-# Ghi chú về phạm vi triển khai ngày 27/10/2026
 
-Áp dụng [đặc tả bổ sung 07](07-LICH-GIAO-DICH-AI-VA-PHAN-TICH.md) cho hành vi thực tế. Các mô tả “giờ vàng” bên dưới là giả thuyết chưa có bằng chứng lợi nhuận. Worker tính EMA/RSI, biến động, volume, spread và nhãn regime theo luật. Android hiển thị AI qua endpoint riêng của mock; web xem snapshot qua chọn tệp hoặc endpoint riêng của mock. Model/API key phải cấu hình riêng. SHA256 là mã nhận diện ngữ cảnh, không phải chữ ký xác thực. Sizing không bảo đảm mức lỗ thực tế.
+# Ghi chú về phạm vi triển khai ngày 28/10/2026
+
+Áp dụng [đặc tả bổ sung 07](file:///e:/Project/trade_bot/docs/07-LICH-GIAO-DICH-AI-VA-PHAN-TICH.md) và [hướng dẫn cài đặt & sử dụng 08](file:///e:/Project/trade_bot/docs/08-TAI-LIEU-CAI-DAT-VA-HUONG-DAN-SU-DUNG.md) cho hành vi thực tế. Các mô tả khung giờ `03:00–04:00` là giả thuyết cần kiểm chứng qua `hourly.py`. Worker tính EMA/RSI, biến động, volume, spread và nhãn regime theo luật. Android hiển thị AI qua endpoint riêng của mock; web xem snapshot qua chọn tệp hoặc endpoint riêng của mock. Model/API key phải cấu hình riêng. SHA256 là mã nhận diện ngữ cảnh, không phải chữ ký xác thực. Sizing không bảo đảm mức lỗ thực tế khi trượt giá vượt dự kiến.
