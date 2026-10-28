@@ -10,6 +10,10 @@ env/
 freqtrade-bot/.env
 docs/API.txt
 *API*.txt
+*.key
+*.key.pub
+*.pem
+id_rsa*
 config-secrets.json
 *.sqlite*
 freqtrade-bot/user_data/data/
