@@ -8,6 +8,8 @@ venv/
 env/
 .env
 freqtrade-bot/.env
+docs/API.txt
+*API*.txt
 config-secrets.json
 *.sqlite*
 freqtrade-bot/user_data/data/

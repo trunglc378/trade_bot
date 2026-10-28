@@ -1,10 +1,29 @@
 """Bounded HTTPS clients; all AI output is untrusted advisory data."""
+import http.client
 import json
 import os
 import re
+import socket
 from urllib.request import Request, urlopen
 
 from vn_support import number
+
+# Ưu tiên kết nối IPv4 cho HTTPS để tránh hiện tượng treo (timeout) IPv6 blackhole trên Windows / VPS
+_orig_https_connect = http.client.HTTPSConnection.connect
+
+
+def _ipv4_preferred_connect(self):
+    try:
+        ipv4_host = socket.gethostbyname(self.host)
+        self.sock = socket.create_connection((ipv4_host, self.port), self.timeout)
+        if getattr(self, "_tunnel_host", None):
+            self._tunnel()
+        self.sock = self._context.wrap_socket(self.sock, server_hostname=self.host)
+    except Exception:
+        _orig_https_connect(self)
+
+
+http.client.HTTPSConnection.connect = _ipv4_preferred_connect
 
 SCHEMA = {"type": "object", "additionalProperties": False, "properties": {
     "recommendations": {"type": "array", "items": {

@@ -1,5 +1,6 @@
 """Read-only market research worker. Never creates exchange orders."""
 import argparse
+from datetime import datetime, timedelta, timezone
 import json
 import logging
 import math
@@ -9,13 +10,86 @@ import re
 import sys
 import tempfile
 import time
-from datetime import datetime, timedelta, timezone
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "strategies"))
 from vn_support import VN, aware, context_id, in_session, number, spread_ratio
 from providers import advise
 
 log = logging.getLogger("research")
+
+
+class PublicHttpExchange:
+    """Bộ khách HTTP thuần (stdlib) kết nối trực tiếp REST API công khai của Binance & OKX khi chưa cài ccxt."""
+
+    def __init__(self, name: str):
+        self.id = name
+
+    def _get_json(self, url: str):
+        req = Request(url, headers={"User-Agent": "FreqBot-VN-Remote/2.0"})
+        with urlopen(req, timeout=15) as r:
+            return json.loads(r.read())
+
+    def load_markets(self):
+        markets = {}
+        if self.id == "binance":
+            info = self._get_json("https://api.binance.com/api/v3/exchangeInfo")
+            for s in info.get("symbols", []):
+                if s.get("quoteAsset") == "USDT":
+                    pair = f"{s['baseAsset']}/{s['quoteAsset']}"
+                    markets[pair] = {
+                        "spot": s.get("isSpotTradingAllowed", True),
+                        "active": s.get("status") == "TRADING",
+                        "quote": "USDT",
+                    }
+        elif self.id == "okx":
+            info = self._get_json("https://www.okx.com/api/v5/public/instruments?instType=SPOT")
+            for s in info.get("data", []):
+                if s.get("quoteCcy") == "USDT":
+                    pair = f"{s['baseCcy']}/{s['quoteCcy']}"
+                    markets[pair] = {
+                        "spot": True,
+                        "active": s.get("state") == "live",
+                        "quote": "USDT",
+                    }
+        return markets
+
+    def fetch_ohlcv(self, pair: str, timeframe: str = "5m", limit: int = 260):
+        if self.id == "binance":
+            sym = pair.replace("/", "")
+            qs = urlencode({"symbol": sym, "interval": timeframe, "limit": limit})
+            rows = self._get_json(f"https://api.binance.com/api/v3/klines?{qs}")
+            return [[float(x[0]), float(x[1]), float(x[2]), float(x[3]), float(x[4]), float(x[5])] for x in rows]
+        sym = pair.replace("/", "-")
+        qs = urlencode({"instId": sym, "bar": timeframe, "limit": limit})
+        rows = self._get_json(f"https://www.okx.com/api/v5/market/candles?{qs}").get("data", [])
+        # OKX trả về nến từ mới nhất -> cũ nhất, cần đảo ngược lại theo thứ tự thời gian tăng dần
+        return [[float(x[0]), float(x[1]), float(x[2]), float(x[3]), float(x[4]), float(x[5])] for x in reversed(rows)]
+
+    def fetch_ticker(self, pair: str):
+        if self.id == "binance":
+            sym = pair.replace("/", "")
+            d = self._get_json(f"https://api.binance.com/api/v3/ticker/24hr?symbol={sym}")
+            return {"quoteVolume": float(d["quoteVolume"])}
+        sym = pair.replace("/", "-")
+        d = self._get_json(f"https://www.okx.com/api/v5/market/ticker?instId={sym}").get("data", [{}])[0]
+        return {"quoteVolume": float(d.get("volCcy24h", 0.0))}
+
+    def fetch_order_book(self, pair: str, limit: int = 5):
+        if self.id == "binance":
+            sym = pair.replace("/", "")
+            d = self._get_json(f"https://api.binance.com/api/v3/depth?symbol={sym}&limit={limit}")
+            return {
+                "bids": [[float(b[0]), float(b[1])] for b in d["bids"]],
+                "asks": [[float(a[0]), float(a[1])] for a in d["asks"]],
+            }
+        sym = pair.replace("/", "-")
+        d = self._get_json(f"https://www.okx.com/api/v5/market/books?instId={sym}&sz={limit}").get("data", [{}])[0]
+        return {
+            "bids": [[float(b[0]), float(b[1])] for b in d.get("bids", [])],
+            "asks": [[float(a[0]), float(a[1])] for a in d.get("asks", [])],
+        }
 
 
 def ema(values, period):
@@ -199,6 +273,23 @@ def prune_history(history_dir, max_files=288):
             pass
 
 
+def _load_dotenv_if_present(bot_dir: Path):
+    env_file = bot_dir / ".env"
+    if env_file.is_file():
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            if "=" in line and not line.strip().startswith("#"):
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip())
+
+
+def _create_exchange(name: str):
+    try:
+        import ccxt
+        return getattr(ccxt, name)({"enableRateLimit": True, "timeout": 15000, "options": {"defaultType": "spot"}})
+    except ImportError:
+        return PublicHttpExchange(name)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, action="append", help="Later JSON files override earlier configs")
@@ -207,7 +298,7 @@ def main():
     configs = args.config or [Path(__file__).resolve().parents[1] / "config.json"]
     if args.loop and args.loop < 60:
         parser.error("--loop must be >= 60")
-    import ccxt
+    _load_dotenv_if_present(Path(__file__).resolve().parents[2])
     logging.basicConfig(level=logging.INFO)
     while True:
         try:
@@ -217,9 +308,7 @@ def main():
             name = config["exchange"]["name"]
             if name not in ("binance", "okx"):
                 raise ValueError("Only Binance / OKX spot research supported")
-            # Intentionally do not pass private exchange keys or arbitrary CCXT config.
-            exchange = getattr(ccxt, name)({"enableRateLimit": True, "timeout": 15000,
-                                           "options": {"defaultType": "spot"}})
+            exchange = _create_exchange(name)
             report = build_report(config, exchange)
             research_dir = configs[0].parent / "research"
             report_file = config["vn_policy"]["research"].get("report_file", "latest.json")
@@ -231,7 +320,7 @@ def main():
             atomic_write(history_dir / (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f") + ".json"), report)
             max_hist = int(config["vn_policy"]["research"].get("max_history_files", 288))
             prune_history(history_dir, max_files=max_hist)
-            log.info("Đã lưu báo cáo nghiên cứu: %s cặp coin, %s lỗi nguồn", len(report["candidates"]), len(report["errors"]))
+            log.info("Đã lưu báo cáo nghiên cứu (%s): %s cặp coin, %s lỗi nguồn", name, len(report["candidates"]), len(report["errors"]))
         except Exception as exc:
             log.error("Lỗi chu kỳ nghiên cứu thị trường: %s", type(exc).__name__)
             if not args.loop:
