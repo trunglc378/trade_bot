@@ -1,0 +1,26 @@
+{
+    "_comment": "TỆP MẪU CẤU HÌNH BÍ MẬT CHO SÀN BINANCE + AI PRO. Sao chép tệp này thành config.private.binance.json (hoặc dùng python setup_accounts.py) và điền khóa của bạn.",
+    "dry_run": true,
+    "exchange": {
+        "name": "binance",
+        "key": "DIEN_BINANCE_API_KEY_CUA_BAN_VAO_DAY",
+        "secret": "DIEN_BINANCE_SECRET_KEY_CUA_BAN_VAO_DAY"
+    },
+    "api_server": {
+        "jwt_secret_key": "THAY_BANG_CHUOI_NGAU_NHIEN_64_KY_TU_DO_SETUP_TAO_RA",
+        "ws_token": "THAY_BANG_TOKEN_WEBSOCKET_BI_MAT_DO_SETUP_TAO_RA",
+        "username": "admin",
+        "password": "DAT_MAT_KHAU_MANH_CHO_APP_ANDROID_VA_WEB"
+    },
+    "vn_policy": {
+        "research": {
+            "mode": "advisory",
+            "providers": {
+                "openai": "gpt-4.1",
+                "gemini": "gemini-2.5-pro"
+            },
+            "min_ai_votes": 2,
+            "min_ai_confidence": 0.70
+        }
+    }
+}

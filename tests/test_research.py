@@ -10,8 +10,10 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path[:0] = [str(ROOT / "freqtrade-bot/user_data/strategies"),
+sys.path[:0] = [str(ROOT / "freqtrade-bot"),
+                str(ROOT / "freqtrade-bot/user_data/strategies"),
                 str(ROOT / "freqtrade-bot/user_data/research")]
+import setup_accounts
 from vn_support import (
     format_entry_tag_vi,
     format_exit_reason_vi,
@@ -253,6 +255,46 @@ class ProviderTests(unittest.TestCase):
         with patch.dict("os.environ", {"OPENAI_API_KEY": "fake"}), patch.object(providers, "post", return_value={"status": "incomplete"}):
             with self.assertRaises(ValueError):
                 providers.advise("openai", "test", [{"pair": "BTC/USDT"}])
+
+    def test_setup_accounts_binance_and_okx_builder(self):
+        b_cfg = setup_accounts.build_private_config(
+            exchange_name="binance",
+            api_key="b_key",
+            api_secret="b_sec",
+            api_passphrase="",
+            dry_run=False,
+            admin_user="lo_admin",
+            admin_password="secret_password",
+            jwt_secret="jwt_64",
+            ws_token="ws_tok",
+            ai_mode="advisory",
+            openai_model="gpt-4.1",
+            gemini_model="gemini-2.5-pro",
+        )
+        self.assertFalse(b_cfg["dry_run"])
+        self.assertEqual(b_cfg["exchange"]["name"], "binance")
+        self.assertNotIn("password", b_cfg["exchange"])
+        self.assertEqual(b_cfg["vn_policy"]["research"]["report_file"], "latest.json")
+        self.assertEqual(b_cfg["vn_policy"]["research"]["min_ai_votes"], 2)
+
+        o_cfg = setup_accounts.build_private_config(
+            exchange_name="okx",
+            api_key="o_key",
+            api_secret="o_sec",
+            api_passphrase="o_pass",
+            dry_run=True,
+            admin_user="lo_admin",
+            admin_password="secret_password",
+            jwt_secret="jwt_64",
+            ws_token="ws_tok",
+            ai_mode="required",
+            openai_model="gpt-4.1",
+            gemini_model="gemini-2.5-pro",
+        )
+        self.assertTrue(o_cfg["dry_run"])
+        self.assertEqual(o_cfg["exchange"]["name"], "okx")
+        self.assertEqual(o_cfg["exchange"]["password"], "o_pass")
+        self.assertEqual(o_cfg["vn_policy"]["research"]["report_file"], "latest-okx.json")
 
 
 if __name__ == "__main__":

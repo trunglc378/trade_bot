@@ -150,7 +150,10 @@ class VnSmartTrendStrategy(IStrategy):
             if spread_ratio(book["bids"][0][0], book["asks"][0][0]) > policy["research"]["max_spread"]:
                 return False
             if policy["research"]["mode"] != "off":
-                path = Path(self.config["user_data_dir"]) / "research" / "latest.json"
+                report_file = policy["research"].get("report_file", "latest.json")
+                path = Path(self.config["user_data_dir"]) / "research" / report_file
+                if not path.is_file() and report_file != "latest.json":
+                    path = Path(self.config["user_data_dir"]) / "research" / "latest.json"
                 report = self._read_latest_report(path)
                 if not report_allows(report, self.config, pair, now):
                     return False

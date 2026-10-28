@@ -102,81 +102,91 @@ Sau khi chạy lệnh trên, cửa sổ dòng lệnh sẽ hiển thị:
 
 ---
 
-### 3.2. Cài đặt Lõi Freqtrade & Dịch vụ AI Research bằng Docker Compose (24/7)
+### 3.2. Kết Nối Tài Khoản Sàn Binance, OKX (Tiền Thật USDT) & AI Pro Bằng Trình Cài Đặt Tự Động (`setup_accounts.py`)
 
-Để vận hành hệ thống Freqtrade thực tế (ở chế độ giao dịch thử **Dry-Run** hoặc tiền thật **Live**) kèm dịch vụ quét thị trường AI tự động mỗi 5 phút:
+Dự án tích hợp sẵn công cụ [`freqtrade-bot/setup_accounts.py`](file:///e:/Project/trade_bot/freqtrade-bot/setup_accounts.py) giúp bạn đưa tài khoản sàn **Binance**, **OKX** cùng khóa API **ChatGPT Pro** và **Google Gemini Pro** vào hệ thống một cách an toàn tuyệt đối (tự động tách tệp cấu hình bí mật `config.private.binance.json`, `config.private.okx.json`, `.env`, khóa quyền đọc `chmod 600` và chặn hoàn toàn khỏi Git).
 
-#### Bước 1: Tạo tệp biến môi trường `.env` và tệp cấu hình riêng `config.private.json`
-Di chuyển vào thư mục [`freqtrade-bot/`](file:///e:/Project/trade_bot/freqtrade-bot):
+#### Bước 1: Tạo Khóa API An Toàn Trên Sàn Binance & Sàn OKX
+1. **Trên Sàn Binance (Đã có sẵn USDT trong ví Spot / Giao ngay):**
+   - Đăng nhập Binance -> Vào **Quản lý API (API Management)** -> Nhấn **Tạo API (Create API)** -> Chọn **Khóa API do hệ thống tạo (System generated)**.
+   - Trong mục **Quyền hạn API (API Restrictions)**:
+     - ✅ Bật **Cho phép Đọc (Enable Reading)**.
+     - ✅ Bật **Bật Giao dịch Spot & Margin (Enable Spot & Margin Trading)**.
+     - ❌ **TUYỆT ĐỐI KHÔNG BẬT** quyền **Rút tiền (Enable Withdrawals)**.
+   - Trong mục **Giới hạn truy cập IP (IP Access Restrictions)**: Chọn **Chỉ giới hạn cho các IP đáng tin cậy (Restrict access to trusted IPs only)** và điền **Địa chỉ IP công cộng (Public IPv4)** của máy chủ Oracle Cloud của bạn.
+   - Lưu lại **API Key** và **Secret Key**.
+2. **Trên Sàn OKX (Đã có sẵn USDT trong tài khoản Giao dịch / Trading Account):**
+   - Đăng nhập OKX -> Vào **Hồ sơ** -> **API** -> Nhấn **Tạo khóa API (Create V5 API Key)**.
+   - Chọn mục đích **Giao dịch API (API Trading)**.
+   - Đặt **Mật khẩu cụm từ (Passphrase)** — *Hãy ghi nhớ mật khẩu này vì OKX bắt buộc cả 3 thông tin: API Key + Secret Key + Passphrase*.
+   - Điền **Địa chỉ IP công cộng của máy chủ Oracle Cloud** vào ô **Danh sách IP được phép (IP Whitelist)**.
+   - Trong mục **Quyền (Permissions)**: Chọn **Đọc (Read)** và **Giao dịch (Trade)**; **TUYỆT ĐỐI KHÔNG CHỌN** **Rút tiền (Withdraw)**.
+   - Lưu lại **API Key**, **Secret Key** và **Passphrase**.
+
+#### Bước 2: Lấy Khóa API Cho ChatGPT Pro (`OPENAI_API_KEY`) & Google Gemini Pro (`GEMINI_API_KEY`)
+- **OpenAI (ChatGPT):** Truy cập `https://platform.openai.com/api-keys`, tạo khóa `sk-proj-...` (mã model Pro khuyên dùng: `gpt-4.1`).
+- **Google Gemini Pro:** Truy cập `https://aistudio.google.com/app/apikey`, tạo khóa `AIzaSy...` (mã model Pro khuyên dùng: `gemini-2.5-pro`).
+
+#### Bước 3: Chạy Trình Kết Nối Tài Khoản Tự Động (`setup_accounts.py`)
+Di chuyển vào thư mục [`freqtrade-bot/`](file:///e:/Project/trade_bot/freqtrade-bot) và chạy:
 ```powershell
 cd e:\Project\trade_bot\freqtrade-bot
-Copy-Item .env.example .env
+py -3.12 setup_accounts.py
 ```
-Mở tệp `.env` vừa tạo bằng trình soạn thảo văn bản và điền khóa API của bạn (nếu sử dụng chế độ cố vấn AI):
-```ini
-OPENAI_API_KEY=sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-GEMINI_API_KEY=AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
+Trình thuật sĩ Tiếng Việt sẽ lần lượt hỏi bạn:
+1. Chế độ vận hành (`dry` = Giao dịch thử an toàn với 1000 USDT ảo, hoặc `live` = Giao dịch tiền thật USDT trên sàn với cơ sở dữ liệu `tradesv3.*.live.sqlite` tách biệt).
+2. Tài khoản & mật khẩu điều khiển từ xa cho Ứng dụng Android / Web Dashboard (kèm tự động sinh khóa `jwt_secret_key` 64 ký tự và `ws_token`).
+3. Khóa `OPENAI_API_KEY` (model `gpt-4.1`) và `GEMINI_API_KEY` (model `gemini-2.5-pro`).
+4. Khóa `API Key` + `Secret Key` của **Binance** và `API Key` + `Secret Key` + `Passphrase` của **OKX**.
 
-Tiếp theo, để bảo mật mật khẩu điều khiển từ xa, khóa JWT và khóa API sàn giao dịch (không bao giờ lưu khóa thật vào `config.json`), hãy tạo tệp `user_data/config.private.json` (tệp này đã được `.gitignore` loại trừ khỏi Git):
-```json
-{
-  "exchange": {
-    "key": "",
-    "secret": ""
-  },
-  "api_server": {
-    "jwt_secret_key": "CHUOI_KHOA_BI_MAT_NGAU_NHIEN_DAI_32_KY_TU_TRO_LEN",
-    "ws_token": "TOKEN_WEBSOCKET_BI_MAT_CUA_RIENG_BAN",
-    "username": "admin",
-    "password": "MAT_KHAU_MANH_CUA_RIENG_BAN"
-  }
-}
-```
-
-#### Bước 2: Khởi chạy hệ thống bằng Docker Compose
-Từ thư mục [`freqtrade-bot/`](file:///e:/Project/trade_bot/freqtrade-bot), chạy lệnh:
+#### Bước 4: Khởi Chạy Hệ Thống 24/7 Bằng Docker Compose (Hỗ Trợ Chạy Đơn Sàn Hoặc Song Song Cả 2 Sàn)
+Từ thư mục [`freqtrade-bot/`](file:///e:/Project/trade_bot/freqtrade-bot):
 ```powershell
+# Trường hợp 1: Chỉ chạy sàn Binance (cổng 8080) + AI Research Binance
 docker compose up -d
-```
-Lệnh này sẽ tự động tải ảnh `freqtradeorg/freqtrade:stable` và khởi chạy song song 2 container:
-1. **`freqbot-vn-core`:** Lõi giao dịch Freqtrade chạy chiến lược [`VnSmartTrendStrategy.py`](file:///e:/Project/trade_bot/freqtrade-bot/user_data/strategies/VnSmartTrendStrategy.py) và mở cổng API tại `127.0.0.1:8080`.
-2. **`freqbot-vn-research`:** Dịch vụ nghiên cứu thị trường [`user_data/research/run.py`](file:///e:/Project/trade_bot/freqtrade-bot/user_data/research/run.py) quét toàn bộ các cặp coin trong whitelist mỗi `300 giây` (5 phút), xuất báo cáo ra `user_data/research/latest.json` và lưu lịch sử vào `user_data/research/history/` (tự động giữ lại tối đa `288` bản chụp gần nhất tương đương 24 giờ).
 
-Kiểm tra nhật ký hoạt động thời gian thực:
-```powershell
-docker compose logs -f
+# Trường hợp 2: Chạy SONG SONG cả sàn Binance (cổng 8080) VÀ sàn OKX (cổng 8081) cùng lúc
+docker compose --profile okx up -d
 ```
+- **Sàn Binance:** Mở API tại cổng `8080`, đọc/ghi báo cáo nghiên cứu tại `user_data/research/latest.json`.
+- **Sàn OKX:** Mở API tại cổng `8081`, đọc/ghi báo cáo nghiên cứu riêng biệt tại `user_data/research/latest-okx.json` và lịch sử tại `user_data/research/history-okx/`.
 
 ---
 
-### 3.3. Cài đặt & Triển khai trên Máy chủ VPS Ubuntu Linux + Mạng riêng Tailscale VPN
+### 3.3. Triển Khai 24/24 Miễn Phí Trọn Đời (0 Đồng) Trên Oracle Cloud Free Tier (`deploy_oracle_cloud_24_7.sh`)
 
-Khi triển khai chạy 24/7 trên máy chủ đám mây (VPS Ubuntu):
+Dự án cung cấp sẵn kịch bản cài đặt tự động 1 chạm [`freqtrade-bot/deploy_oracle_cloud_24_7.sh`](file:///e:/Project/trade_bot/freqtrade-bot/deploy_oracle_cloud_24_7.sh) được thiết kế chuyên biệt cho máy ảo **Oracle Cloud Always Free (Ubuntu 22.04 / 24.04 LTS — hỗ trợ cả chip Ampere ARM64 4 OCPU / 24GB RAM và AMD64)**.
 
-1. **Cài đặt đồng bộ thời gian thực Chrony (NTP):**
+1. **Tạo máy ảo miễn phí trên Oracle Cloud (OCI):**
+   - Chọn vùng máy chủ (**Region**): **Singapore (`ap-singapore-1`)** hoặc **Tokyo (`ap-tokyo-1`)** để có độ trễ thấp nhất tới máy chủ khớp lệnh của Binance & OKX.
+   - Chọn hệ điều hành (**Image**): **Ubuntu 22.04 LTS** hoặc **Ubuntu 24.04 LTS**.
+   - Chọn cấu hình (**Shape**): **Ampere `VM.Standard.A1.Flex` (Always Free — tối đa 4 OCPU, 24 GB RAM)**.
+2. **Chạy kịch bản cài đặt tự động 24/7 trên máy chủ Oracle Cloud:**
+   Kết nối SSH vào máy chủ Oracle Cloud và chạy đúng 3 dòng lệnh sau:
    ```bash
-   sudo apt update && sudo apt install -y chrony curl git docker.io docker-compose-v2
-   sudo systemctl enable --now chrony
-   chronyc tracking
+   git clone https://github.com/trunglc378/trade_bot.git ~/trade_bot
+   cd ~/trade_bot/freqtrade-bot
+   bash deploy_oracle_cloud_24_7.sh
    ```
-2. **Cài đặt mạng riêng ảo Tailscale VPN:**
+   Kịch bản `deploy_oracle_cloud_24_7.sh` sẽ tự động thực hiện toàn bộ 6 bước:
+   - `[1/6]` Cài đặt & kích hoạt đồng bộ thời gian thực chuẩn sàn **Chrony (NTP)** + đặt múi giờ `Asia/Ho_Chi_Minh`.
+   - `[2/6]` Khởi tạo **2 GB bộ nhớ đệm Swap** chống tràn bộ nhớ tuyệt đối.
+   - `[3/6]` Cài đặt **Docker Engine & Docker Compose v2** tự khởi động cùng hệ thống.
+   - `[4/6]` Cài đặt mạng riêng ảo **Tailscale Mesh VPN**.
+   - `[5/6]` Khóa toàn bộ cổng công cộng bằng tường lửa **`UFW`**, chỉ cho phép cổng `8080` (Binance) và `8081` (OKX) đi qua giao diện mạng riêng `tailscale0`.
+   - `[6/6]` Khởi tạo sẵn các tệp cấu hình bảo mật mặc định.
+3. **Kết nối Tailscale & Nhập tài khoản Binance / OKX / AI Pro:**
    ```bash
-   curl -fsSL https://tailscale.com/install.sh | sh
+   # Đăng nhập Tailscale VPN và lấy địa chỉ IP 100.x.y.z của VPS
    sudo tailscale up
    tailscale ip -4
+
+   # Chạy trình thuật sĩ nhập khóa Binance, OKX, ChatGPT Pro, Gemini Pro và IP Tailscale
+   python3 setup_accounts.py
+
+   # Khởi chạy 24/7 cả 2 sàn Binance (cổng 8080) & OKX (cổng 8081)
+   sudo docker compose --profile okx up -d
    ```
-   Ghi nhớ địa chỉ IP Tailscale của VPS (ví dụ: `100.88.99.101`).
-3. **Cấu hình Tường lửa `UFW` khóa toàn bộ cổng công cộng, chỉ cho phép kết nối qua mạng riêng Tailscale:**
-   ```bash
-   sudo ufw default deny incoming
-   sudo ufw default allow outgoing
-   sudo ufw allow in on tailscale0 to any port 8080 proto tcp
-   sudo ufw allow ssh
-   sudo ufw enable
-   ```
-4. **Cập nhật cổng lắng nghe trong `docker-compose.yml` theo IP Tailscale của VPS:**
-   Trong [`freqtrade-bot/docker-compose.yml`](file:///e:/Project/trade_bot/freqtrade-bot/docker-compose.yml), đổi dòng `"127.0.0.1:8080:8080"` thành `"100.88.99.101:8080:8080"` (thay bằng IP Tailscale thực tế của VPS) để điện thoại Android của bạn (cũng bật ứng dụng Tailscale) truy cập an toàn từ bất kỳ đâu.
 
 ---
 

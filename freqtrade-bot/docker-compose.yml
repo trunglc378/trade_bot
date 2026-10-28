@@ -1,29 +1,101 @@
 ---
+# Cấu hình Docker Compose tối ưu cho Oracle Cloud Free Tier (24/7)
+# - Mặc định chạy Sàn Binance (cổng 8080) + Dịch vụ AI Research (ChatGPT Pro + Gemini Pro).
+# - Khi muốn chạy đồng thời thêm Sàn OKX (cổng 8081), dùng lệnh:
+#   docker compose --profile okx up -d
 services:
   freqtrade:
     image: freqtradeorg/freqtrade:stable
     restart: unless-stopped
-    container_name: freqtrade_vn_bot
+    container_name: freqtrade_vn_binance
     volumes:
       - "./user_data:/freqtrade/user_data"
-    # Mở cổng 8080 cho Ứng dụng Android (FreqBot VN Remote) & Web Dashboard Tiếng Việt kết nối
-    # Lưu ý bảo mật: Khi chạy trên VPS thực tế có cài Tailscale, hãy đổi thành "100.x.y.z:8080:8080"
+    # Mở cổng 8080 cho Ứng dụng Android (FreqBot VN Remote) & Web Dashboard Tiếng Việt kết nối.
+    # Khi chạy trên Oracle Cloud có cài Tailscale VPN, đặt TAILSCALE_IP=100.x.y.z trong file .env
     ports:
-      - "127.0.0.1:8080:8080"
+      - "${TAILSCALE_IP:-127.0.0.1}:8080:8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     command: >
       trade
-      --logfile /freqtrade/user_data/logs/freqtrade.log
-      --db-url sqlite:////freqtrade/user_data/tradesv3.dryrun.sqlite
+      --logfile /freqtrade/user_data/logs/freqtrade-binance.log
+      --db-url sqlite:////freqtrade/user_data/${BINANCE_DB_FILE:-tradesv3.dryrun.sqlite}
       --config /freqtrade/user_data/config.json
+      --config /freqtrade/user_data/${BINANCE_PRIVATE_CONFIG:-config.private.binance.json}
       --strategy VnSmartTrendStrategy
 
   research:
     image: freqtradeorg/freqtrade:stable
     restart: unless-stopped
+    container_name: freqtrade_vn_research_binance
     entrypoint: ["python", "/freqtrade/user_data/research/run.py"]
-    command: ["--config", "/freqtrade/user_data/config.json", "--loop", "300"]
+    command:
+      - "--config"
+      - "/freqtrade/user_data/config.json"
+      - "--config"
+      - "/freqtrade/user_data/${BINANCE_PRIVATE_CONFIG:-config.private.binance.json}"
+      - "--loop"
+      - "${RESEARCH_INTERVAL_SECONDS:-300}"
     volumes:
       - "./user_data:/freqtrade/user_data"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+
+  freqtrade-okx:
+    profiles: ["okx"]
+    image: freqtradeorg/freqtrade:stable
+    restart: unless-stopped
+    container_name: freqtrade_vn_okx
+    volumes:
+      - "./user_data:/freqtrade/user_data"
+    # Sàn OKX lắng nghe tại cổng 8081 để bạn chuyển đổi nhanh trên App Android / Web Dashboard
+    ports:
+      - "${TAILSCALE_IP:-127.0.0.1}:8081:8080"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    command: >
+      trade
+      --logfile /freqtrade/user_data/logs/freqtrade-okx.log
+      --db-url sqlite:////freqtrade/user_data/${OKX_DB_FILE:-tradesv3.okx.dryrun.sqlite}
+      --config /freqtrade/user_data/config.json
+      --config /freqtrade/user_data/config-okx.json
+      --config /freqtrade/user_data/${OKX_PRIVATE_CONFIG:-config.private.okx.json}
+      --strategy VnSmartTrendStrategy
+
+  research-okx:
+    profiles: ["okx"]
+    image: freqtradeorg/freqtrade:stable
+    restart: unless-stopped
+    container_name: freqtrade_vn_research_okx
+    entrypoint: ["python", "/freqtrade/user_data/research/run.py"]
+    command:
+      - "--config"
+      - "/freqtrade/user_data/config.json"
+      - "--config"
+      - "/freqtrade/user_data/config-okx.json"
+      - "--config"
+      - "/freqtrade/user_data/${OKX_PRIVATE_CONFIG:-config.private.okx.json}"
+      - "--loop"
+      - "${RESEARCH_INTERVAL_SECONDS:-300}"
+    volumes:
+      - "./user_data:/freqtrade/user_data"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}

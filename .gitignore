@@ -7,6 +7,7 @@ __pycache__/
 venv/
 env/
 .env
+freqtrade-bot/.env
 config-secrets.json
 *.sqlite*
 freqtrade-bot/user_data/data/
@@ -14,8 +15,12 @@ freqtrade-bot/user_data/logs/
 freqtrade-bot/user_data/backtest_results/
 freqtrade-bot/user_data/hyperopt_results/
 freqtrade-bot/user_data/config.secret.json
+freqtrade-bot/user_data/config.private*.json
+freqtrade-bot/user_data/*.private.json
 freqtrade-bot/user_data/research/latest.json
+freqtrade-bot/user_data/research/latest-*.json
 freqtrade-bot/user_data/research/history/
+freqtrade-bot/user_data/research/history-*/
 
 # Android Studio & Gradle build artifacts
 android-app/.gradle/
