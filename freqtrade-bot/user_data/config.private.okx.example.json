@@ -1,6 +1,10 @@
 {
-    "_comment": "TỆP MẪU CẤU HÌNH BÍ MẬT CHO SÀN OKX (CẦN THÊM PASSPHRASE) + AI PRO. Sao chép tệp này thành config.private.okx.json (hoặc dùng python setup_accounts.py) và điền khóa của bạn.",
+    "_comment": "TỆP MẪU CẤU HÌNH BÍ MẬT CHO SÀN OKX (CHỈ CẤP 34.16 USDT TRONG TỔNG 521 USDT, SĂN LỆNH 24/24 ƯU TIÊN 03:00-04:00 VN) + AI PRO.",
+    "max_open_trades": 2,
+    "stake_amount": 15.37,
     "dry_run": true,
+    "dry_run_wallet": 34.16,
+    "available_capital": 34.16,
     "exchange": {
         "name": "okx",
         "key": "DIEN_OKX_API_KEY_CUA_BAN_VAO_DAY",
@@ -14,6 +18,24 @@
         "password": "DAT_MAT_KHAU_MANH_CHO_APP_ANDROID_VA_WEB"
     },
     "vn_policy": {
+        "schedule": {
+            "enabled": false,
+            "windows": [
+                {
+                    "start": "03:00",
+                    "end": "04:00",
+                    "weekdays": [0, 1, 2, 3, 4, 5, 6]
+                }
+            ]
+        },
+        "risk": {
+            "risk_per_trade": 0.016,
+            "max_position_fraction": 0.45,
+            "max_exposure_fraction": 0.90,
+            "cost_buffer": 0.004,
+            "max_entry_deviation": 0.005,
+            "off_peak_stake_multiplier": 0.75
+        },
         "research": {
             "mode": "advisory",
             "providers": {
@@ -21,7 +43,8 @@
                 "gemini": "gemini-2.5-pro"
             },
             "min_ai_votes": 2,
-            "min_ai_confidence": 0.70
+            "min_ai_confidence": 0.70,
+            "report_file": "latest-okx.json"
         }
     }
 }

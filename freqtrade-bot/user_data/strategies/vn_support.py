@@ -49,12 +49,11 @@ def minute(text):
     return hour * 60 + minutes
 
 
-def in_session(now, schedule):
-    """[start, end); overnight windows use weekday of the starting date."""
+def in_priority_window(now, schedule):
+    """Kiểm tra thời điểm hiện tại có nằm trong khung giờ ưu tiên (VD: 03:00-04:00 VN) hay không."""
     local = aware(now).astimezone(VN)
-    if not schedule.get("enabled", False):
-        return True
-    for window in schedule["windows"]:
+    windows = schedule.get("windows") or []
+    for window in windows:
         start, end = minute(window["start"]), minute(window["end"])
         days = window["weekdays"]  # Monday = 0
         if start == end or not days or any(type(d) is not int or d not in range(7) for d in days):
@@ -70,7 +69,17 @@ def in_session(now, schedule):
     return False
 
 
-def stake_size(equity, proposed, maximum, minimum, used, stoploss, risk):
+def in_session(now, schedule):
+    """[start, end); overnight windows use weekday of the starting date.
+    Nếu schedule.enabled == False (chế độ săn lệnh 24/24 ưu tiên khung giờ), vẫn kiểm tra tính hợp lệ của windows rồi trả về True.
+    """
+    match = in_priority_window(now, schedule)
+    if not schedule.get("enabled", False):
+        return True
+    return match
+
+
+def stake_size(equity, proposed, maximum, minimum, used, stoploss, risk, is_priority_hour=True):
     equity, proposed, maximum, used, stoploss = map(number, (equity, proposed, maximum, used, stoploss))
     per_trade = number(risk["risk_per_trade"])
     per_position = number(risk["max_position_fraction"])
@@ -80,8 +89,13 @@ def stake_size(equity, proposed, maximum, minimum, used, stoploss, risk):
         raise ValueError("Invalid risk limits")
     if min(equity, proposed, maximum) <= 0 or used < 0:
         return 0.0
-    size = min(proposed, maximum, equity * per_position,
-               equity * per_trade / (abs(stoploss) + costs),
+    # Hỗ trợ hệ số ưu tiên vốn: Trong khung giờ ưu tiên (03:00-04:00 VN) giải ngân 100% hạn mức;
+    # Ngoài khung giờ ưu tiên (săn lệnh 24/24) có thể áp dụng off_peak_stake_multiplier (mặc định 1.0)
+    multiplier = 1.0 if is_priority_hour else number(risk.get("off_peak_stake_multiplier", 1.0))
+    if not (0 < multiplier <= 1.0):
+        raise ValueError("Invalid off_peak_stake_multiplier")
+    size = min(proposed, maximum, equity * per_position * multiplier,
+               (equity * per_trade / (abs(stoploss) + costs)) * multiplier,
                max(0, equity * exposure - used))
     return size if size >= number(minimum or 0) else 0.0
 

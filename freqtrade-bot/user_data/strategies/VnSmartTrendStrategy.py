@@ -29,6 +29,7 @@ import freqtrade.vendor.qtpylib.indicators as qtpylib
 from vn_support import (
     format_entry_tag_vi,
     format_exit_reason_vi,
+    in_priority_window,
     in_session,
     number,
     report_allows,
@@ -112,18 +113,20 @@ class VnSmartTrendStrategy(IStrategy):
         self._report_cache_data = report
         return report
 
-    def _stake(self, proposed, maximum, minimum):
+    def _stake(self, proposed, maximum, minimum, now=None):
         equity = self.wallets.get_total_stake_amount()
         used = sum(t.stake_amount for t in Trade.get_trades_proxy(is_open=True))
+        schedule = self.config["vn_policy"]["schedule"]
+        is_prio = True if now is None else in_priority_window(now, schedule)
         return stake_size(equity, proposed, maximum, minimum, used, self.stoploss,
-                          self.config["vn_policy"]["risk"])
+                          self.config["vn_policy"]["risk"], is_priority_hour=is_prio)
 
     def custom_stake_amount(self, pair, current_time, current_rate, proposed_stake,
                             min_stake, max_stake, leverage, entry_tag, side, **kwargs):
         try:
             if side != "long" or leverage != 1:
                 return 0.0
-            return self._stake(proposed_stake, max_stake, min_stake)
+            return self._stake(proposed_stake, max_stake, min_stake, now=current_time)
         except Exception:
             logger.warning("Không tính được giới hạn vốn động; từ chối mua %s.", pair)
             return 0.0
@@ -134,7 +137,7 @@ class VnSmartTrendStrategy(IStrategy):
             if side != "long" or not in_session(now, policy["schedule"]):
                 return False
             cost = number(amount) * number(rate)
-            if cost <= 0 or cost > self._stake(cost, cost, None) + 1e-8:
+            if cost <= 0 or cost > self._stake(cost, cost, None, now=now) + 1e-8:
                 return False
             # Chế độ Backtest/Hyperopt không có sổ lệnh trực tiếp hay báo cáo AI hiện tại
             if self._historical():
