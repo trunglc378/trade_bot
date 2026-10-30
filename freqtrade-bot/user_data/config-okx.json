@@ -5,6 +5,13 @@
         "key": "",
         "secret": "",
         "password": "",
+        "ccxt_async_config": {
+            "urls": {
+                "api": {
+                    "ws": "wss://ws.okx.com/ws/v5"
+                }
+            }
+        },
         "pair_whitelist": [
             "BTC/USDT",
             "ETH/USDT",

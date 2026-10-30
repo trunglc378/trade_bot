@@ -153,14 +153,16 @@ docker compose --profile okx up -d
 
 ---
 
-### 3.3. Triển Khai 24/24 Miễn Phí Trọn Đời (0 Đồng) Trên Oracle Cloud Free Tier (`deploy_oracle_cloud_24_7.sh`)
+### 3.3. Triển Khai 24/24 Trên Oracle Cloud Free Tier (`deploy_oracle_cloud_24_7.sh`)
 
-Dự án cung cấp sẵn kịch bản cài đặt tự động 1 chạm [`freqtrade-bot/deploy_oracle_cloud_24_7.sh`](file:///e:/Project/trade_bot/freqtrade-bot/deploy_oracle_cloud_24_7.sh) được thiết kế chuyên biệt cho máy ảo **Oracle Cloud Always Free (Ubuntu 22.04 / 24.04 LTS — hỗ trợ cả chip Ampere ARM64 4 OCPU / 24GB RAM và AMD64)**.
+> Cập nhật 29/10/2026: làm theo [hướng dẫn 09](09-TRIEN-KHAI-VPS-24-7.md) trước. Oracle hiện công bố A1 tổng 2 OCPU/12 GB RAM và có thể thu hồi instance ít hoạt động. Các bước nhập tài khoản lại bên dưới chỉ phù hợp khi chưa có cấu hình; nếu đã nhập khóa trên máy cá nhân, chuyển các tệp private qua SSH để giữ nguyên thiết lập.
+
+Dự án cung cấp kịch bản [`freqtrade-bot/deploy_oracle_cloud_24_7.sh`](file:///e:/Project/trade_bot/freqtrade-bot/deploy_oracle_cloud_24_7.sh) cho Ubuntu 22.04 / 24.04 LTS trên ARM64 hoặc AMD64. Kiểm tra hạn mức miễn phí và tài nguyên thực tế trong OCI Console trước khi tạo máy.
 
 1. **Tạo máy ảo miễn phí trên Oracle Cloud (OCI):**
    - Chọn vùng máy chủ (**Region**): **Singapore (`ap-singapore-1`)** hoặc **Tokyo (`ap-tokyo-1`)** để có độ trễ thấp nhất tới máy chủ khớp lệnh của Binance & OKX.
    - Chọn hệ điều hành (**Image**): **Ubuntu 22.04 LTS** hoặc **Ubuntu 24.04 LTS**.
-   - Chọn cấu hình (**Shape**): **Ampere `VM.Standard.A1.Flex` (Always Free — tối đa 4 OCPU, 24 GB RAM)**.
+   - Chọn cấu hình (**Shape**): **Ampere `VM.Standard.A1.Flex`**, kiểm tra nhãn Always Free và dự toán; hạn mức hiện công bố tương đương tổng 2 OCPU, 12 GB RAM.
 2. **Chạy kịch bản cài đặt tự động 24/7 trên máy chủ Oracle Cloud:**
    Kết nối SSH vào máy chủ Oracle Cloud và chạy đúng 3 dòng lệnh sau:
    ```bash
@@ -170,7 +172,7 @@ Dự án cung cấp sẵn kịch bản cài đặt tự động 1 chạm [`freqt
    ```
    Kịch bản `deploy_oracle_cloud_24_7.sh` sẽ tự động thực hiện toàn bộ 6 bước:
    - `[1/6]` Cài đặt & kích hoạt đồng bộ thời gian thực chuẩn sàn **Chrony (NTP)** + đặt múi giờ `Asia/Ho_Chi_Minh`.
-   - `[2/6]` Khởi tạo **2 GB bộ nhớ đệm Swap** chống tràn bộ nhớ tuyệt đối.
+   - `[2/6]` Khởi tạo **2 GB Swap** để giảm nguy cơ hết RAM; vẫn cần giám sát tài nguyên.
    - `[3/6]` Cài đặt **Docker Engine & Docker Compose v2** tự khởi động cùng hệ thống.
    - `[4/6]` Cài đặt mạng riêng ảo **Tailscale Mesh VPN**.
    - `[5/6]` Khóa toàn bộ cổng công cộng bằng tường lửa **`UFW`**, chỉ cho phép cổng `8080` (Binance) và `8081` (OKX) đi qua giao diện mạng riêng `tailscale0`.
@@ -268,7 +270,7 @@ Khối `vn_policy.research` điều khiển cách Bot kết hợp phân tích đ
 ```
 - **3 Chế độ vận hành (`mode`):**
   1. `"off"`: Tắt kiểm tra tệp báo cáo nghiên cứu khi vào lệnh (phù hợp khi chạy Backtest lịch sử hoặc chỉ dùng chỉ báo kỹ thuật thuần túy).
-  2. `"advisory"` (**Mặc định khuyên dùng**): Bắt buộc phải có tệp báo cáo `latest.json` còn hạn (`ttl_seconds = 900` giây = 15 phút) và cặp coin phải vượt qua các bộ lọc kỹ thuật định lượng (khối lượng 24h `>= 10 triệu USDT`, độ giãn Spread `<= 0.2%`, biến động nến `<= 2%`, biến động 1 giờ `<= 6%`). Nếu có cấu hình thêm `providers` AI, nhận định của AI sẽ được hiển thị để tham khảo; nếu bất kỳ AI nào bỏ phiếu **Né tránh (`avoid`)**, cặp coin đó sẽ bị loại khỏi danh sách mua.
+  2. `"advisory"`: Bắt buộc có snapshot còn hạn và cặp coin qua bộ lọc kỹ thuật. Nhận định AI dùng để tham khảo; phiếu `avoid` không phủ quyết mua trong chế độ này. Quyền phủ quyết AI chỉ áp dụng trong `required`.
   3. `"required"`: Chế độ **Bắt buộc Đồng thuận AI**. Ngoài việc đạt chuẩn kỹ thuật, cặp coin bắt buộc phải nhận đủ số phiếu **Đề xuất Mua (`consider`)** từ tối thiểu `min_ai_votes` nhà cung cấp AI (ví dụ cả `openai` và `gemini`) với độ tự tin `>= min_ai_confidence` (ví dụ `0.70`) và không có phiếu phủ quyết (`avoid`).
 
 ---
@@ -326,9 +328,11 @@ Trước khi quyết định sử dụng bất kỳ khung giờ giao dịch nào
 
 ```powershell
 # Phân tích kết quả Backtest của Freqtrade theo từng giờ Việt Nam (00h -> 23h)
-py -3.12 freqtrade-bot/user_data/research/hourly.py duong_dan_ket_qua_backtest.json --min-trades 30
+py -3.12 freqtrade-bot/user_data/research/hourly.py trades-net.csv --min-trades 30
 ```
 Công cụ sẽ xuất báo cáo JSON thống kê cho từng khung giờ từ `0` đến `23` (múi giờ `Asia/Ho_Chi_Minh`) gồm: tổng số lệnh (`trades`), tỷ lệ thắng (`win_rate`), lợi nhuận ròng (`net_profit`), hệ số lợi nhuận (`profit_factor`) và cờ đánh giá đủ kích thước mẫu (`enough_samples: true` khi đạt tối thiểu 30 lệnh).
+
+Đầu vào phải là CSV UTF-8 gồm `open_date` (ISO có timezone) và `profit_abs` (PnL ròng); cần chuyển đổi kết quả Freqtrade trước, không truyền trực tiếp ZIP/JSON backtest.
 
 ---
 

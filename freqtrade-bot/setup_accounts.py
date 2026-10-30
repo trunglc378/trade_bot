@@ -326,6 +326,9 @@ def main() -> int:
         ws_token = secrets.token_urlsafe(24)
         for ex_name, cap in (("binance", args.binance_usdt), ("okx", args.okx_usdt)):
             out_path = USER_DATA_DIR / f"config.private.{ex_name}.json"
+            if out_path.exists():
+                print(f"Giữ nguyên cấu hình đã có: {out_path.name}")
+                continue
             cfg = build_private_config(
                 exchange_name=ex_name,
                 api_key="",
@@ -333,7 +336,7 @@ def main() -> int:
                 api_passphrase="",
                 dry_run=True,
                 admin_user="admin",
-                admin_password="mat_khau_manh_cua_ban",
+                admin_password=secrets.token_urlsafe(24),
                 jwt_secret=jwt_secret,
                 ws_token=ws_token,
                 ai_mode="advisory",
@@ -347,8 +350,8 @@ def main() -> int:
         if not env_path.exists():
             write_env_file(env_path, "", "", "127.0.0.1", dry_run=True)
         print(
-            f"Đã áp dụng cấu hình chuẩn cho LO: Binance={args.binance_usdt:.2f} USDT, "
-            f"OKX={args.okx_usdt:.2f} USDT, Chế độ=Dry-Run (Lựa chọn A), Săn 24/24 ưu tiên 03:00-04:00 VN."
+            "Đã tạo các tệp mặc định còn thiếu; giữ nguyên các tệp đã có. "
+            "Tệp mới dùng Dry-Run và mật khẩu ngẫu nhiên; cấu hình tài khoản trước khi truy cập từ xa."
         )
         return 0
 

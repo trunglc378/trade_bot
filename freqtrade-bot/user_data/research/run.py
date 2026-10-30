@@ -315,8 +315,6 @@ def main():
             history_subdir = "history" if report_file == "latest.json" else f"history-{name}"
             history_dir = research_dir / history_subdir
             atomic_write(research_dir / report_file, report)
-            if report_file != "latest.json":
-                atomic_write(research_dir / "latest.json", report)
             atomic_write(history_dir / (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f") + ".json"), report)
             max_hist = int(config["vn_policy"]["research"].get("max_history_files", 288))
             prune_history(history_dir, max_files=max_hist)

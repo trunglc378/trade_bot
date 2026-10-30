@@ -5,7 +5,7 @@
 #   docker compose --profile okx up -d
 services:
   freqtrade:
-    image: freqtradeorg/freqtrade:stable
+    image: ${FREQTRADE_IMAGE:-freqtradeorg/freqtrade:stable}
     restart: unless-stopped
     container_name: freqtrade_vn_binance
     volumes:
@@ -28,7 +28,7 @@ services:
       --strategy VnSmartTrendStrategy
 
   research:
-    image: freqtradeorg/freqtrade:stable
+    image: ${FREQTRADE_IMAGE:-freqtradeorg/freqtrade:stable}
     restart: unless-stopped
     container_name: freqtrade_vn_research_binance
     entrypoint: ["python", "/freqtrade/user_data/research/run.py"]
@@ -52,7 +52,7 @@ services:
 
   freqtrade-okx:
     profiles: ["okx"]
-    image: freqtradeorg/freqtrade:stable
+    image: ${FREQTRADE_IMAGE:-freqtradeorg/freqtrade:stable}
     restart: unless-stopped
     container_name: freqtrade_vn_okx
     volumes:
@@ -76,7 +76,7 @@ services:
 
   research-okx:
     profiles: ["okx"]
-    image: freqtradeorg/freqtrade:stable
+    image: ${FREQTRADE_IMAGE:-freqtradeorg/freqtrade:stable}
     restart: unless-stopped
     container_name: freqtrade_vn_research_okx
     entrypoint: ["python", "/freqtrade/user_data/research/run.py"]

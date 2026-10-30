@@ -1,5 +1,11 @@
 # Dự Án Hệ Thống Giao Dịch Tiền Điện Tử Tự Động, Phân Tích AI Đa Nguồn & Điều Khiển Từ Xa Tiếng Việt (FreqBot VN Remote)
 
+> **Triển khai VPS 24/7 (29/10/2026):** Đọc [hướng dẫn 09](docs/09-TRIEN-KHAI-VPS-24-7.md) cho cấu hình thực tế, cách tạo VPS và chuyển các tệp private hiện có. Hướng dẫn này đính chính hạn mức Oracle, chế độ AI advisory và phân biệt lịch cấu hình gốc với lịch riêng của từng sàn.
+
+> **Dùng AWS Free Plan:** Theo [hướng dẫn EC2 số 10](docs/10-AWS-EC2-FREE-PLAN.md) để tạo máy từ credit AWS, chạy thử một sàn trước và kiểm soát thời hạn/chi phí.
+
+> **VPS Sydney đã triển khai live:** Xem [vận hành số 11](docs/11-VAN-HANH-AWS-SYDNEY-LIVE.md) cho cấu hình thực tế Binance/OKX, cách mở dashboard qua SSH tunnel và giới hạn đã kiểm chứng.
+
 > **Trạng thái triển khai 28/10/2026:** Xem [Đặc tả và hướng dẫn 07](file:///e:/Project/trade_bot/docs/07-LICH-GIAO-DICH-AI-VA-PHAN-TICH.md) cùng [Tài liệu Cài đặt & Hướng dẫn Sử dụng 08](file:///e:/Project/trade_bot/docs/08-TAI-LIEU-CAI-DAT-VA-HUONG-DAN-SU-DUNG.md) để nắm chi tiết cài đặt và vận hành. Mặc định hệ thống chạy ở chế độ giao dịch thử (`dry-run`), AI ở chế độ tham khảo (`advisory`), chưa gắn sẵn khóa API. Khung giờ `03:00–04:00` giờ Việt Nam là khung giờ cấu hình mặc định cần được kiểm chứng bằng Backtest (`hourly.py`) trên dữ liệu thực tế. Tiến trình nghiên cứu (`research/run.py`) tính toán đầy đủ `EMA 20/50/200`, `RSI(14)`, độ giãn `Spread`, biến động 1h, phân loại trạng thái thị trường (`Market Regime`) và tự động dọn dẹp lịch sử bản chụp (`prune_history`). Giao diện Web Dashboard và Ứng dụng Android đã được chuẩn hóa **100% Tiếng Việt**.
 
 Kiểm tra nhanh từ thư mục gốc `e:\Project\trade_bot`:

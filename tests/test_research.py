@@ -112,6 +112,27 @@ class PolicyTests(unittest.TestCase):
 
 
 class ResearchTests(unittest.TestCase):
+    def test_okx_worker_does_not_overwrite_binance_snapshot(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            settings = config()
+            settings["exchange"]["name"] = "okx"
+            settings["vn_policy"]["research"]["report_file"] = "latest-okx.json"
+            config_file = root / "config.json"
+            config_file.write_text(json.dumps(settings), encoding="utf-8")
+            binance_path = root / "research/latest.json"
+            research.atomic_write(binance_path, {"exchange": "binance"})
+            original = binance_path.read_bytes()
+            report = {"exchange": "okx", "candidates": [], "errors": []}
+            with patch("sys.argv", ["run.py", "--config", str(config_file)]), \
+                    patch.object(research, "_load_dotenv_if_present"), \
+                    patch.object(research, "_create_exchange"), \
+                    patch.object(research, "build_report", return_value=report):
+                self.assertEqual(research.main(), 0)
+            self.assertEqual(binance_path.read_bytes(), original)
+            self.assertEqual(json.loads((root / "research/latest-okx.json").read_text()), report)
+            self.assertEqual(len(list((root / "research/history-okx").glob("*.json"))), 1)
+
     def setUp(self):
         self.c = config()
         self.exchange = Exchange()

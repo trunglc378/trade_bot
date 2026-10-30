@@ -2,7 +2,7 @@
 # ==============================================================================
 # KỊCH BẢN CÀI ĐẶT TỰ ĐỘNG 24/7 TRÊN ORACLE CLOUD FREE TIER (UBUNTU 22.04/24.04)
 # Dự án: Hệ thống Giao dịch Tự động & Cố vấn AI Đa nguồn (FreqBot VN Remote)
-# Hỗ trợ: Cả kiến trúc Ampere ARM64 (4 OCPU / 24GB RAM) và AMD64 Micro
+# Hỗ trợ ARM64 và AMD64; kiểm tra hạn mức Always Free hiện tại trên OCI Console.
 # ==============================================================================
 set -euo pipefail
 
@@ -19,7 +19,7 @@ sudo systemctl enable --now chrony
 # Đặt múi giờ máy chủ về chuẩn giờ Việt Nam (Asia/Ho_Chi_Minh) để dễ theo dõi nhật ký
 sudo timedatectl set-timezone Asia/Ho_Chi_Minh || true
 
-# 2. Tạo bộ nhớ đệm ảo Swap 2GB (bảo vệ máy ảo không bao giờ bị tràn RAM)
+# 2. Tạo Swap 2GB để giảm nguy cơ hết RAM; vẫn cần theo dõi tài nguyên.
 if ! sudo swapon --show | grep -q '/swapfile'; then
     echo "[2/6] Khởi tạo 2GB bộ nhớ đệm Swap..."
     sudo fallocate -l 2G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
