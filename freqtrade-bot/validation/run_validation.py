@@ -18,7 +18,7 @@ def main():
     for exchange in ['binance', 'okx']:
         config = ROOT / f'config-{exchange}.json'
         cfg = json.loads(config.read_text())
-        assert cfg['dry_run'] and not cfg['exchange'].get('key') and not cfg['api_server']['enabled']
+        assert cfg['dry_run'] and not cfg['exchange'].get('key') and not cfg.get('api_server', {}).get('enabled')
         run(['download-data', '-c', str(config), '--timerange', '20260701-20261101',
              '--timeframes', '5m', '1h', '--no-parallel-download'], f'download-{exchange}.log')
         for pair in cfg['exchange']['pair_whitelist']:

@@ -15,7 +15,7 @@ for name in ['binance', 'okx']:
     cfg = copy.deepcopy(base)
     cfg.update(dry_run=True, dry_run_wallet=34.16, available_capital=34.16,
                max_open_trades=2, stake_amount=15.37, user_data_dir='/freqtrade/user_data')
-    cfg['api_server'] = {'enabled': False}
+    cfg.pop('api_server', None)
     cfg.pop('telegram', None)
     cfg['exchange'] = {'name': name, 'key': '', 'secret': '',
         'ccxt_config': {'enableRateLimit': True, 'options': {'fetchCurrencies': False}},

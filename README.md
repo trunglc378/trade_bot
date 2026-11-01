@@ -1,5 +1,7 @@
 # Dự Án Hệ Thống Giao Dịch Tiền Điện Tử Tự Động, Phân Tích AI Đa Nguồn & Điều Khiển Từ Xa Tiếng Việt (FreqBot VN Remote)
 
+> **Đánh giá trước khi tăng vốn (01/11/2026):** Xem [quy trình kiểm thử](freqtrade-bot/validation/README.md). Đã chuẩn bị lệnh BTC để tạo USDT dự phòng; hạn mức live vẫn 34,16 USDT/sàn vì các ứng viên chưa đạt kiểm tra hiệu quả và chi phí. Các tệp nghiên cứu không thay chiến lược live.
+
 > **Triển khai VPS 24/7 (29/10/2026):** Đọc [hướng dẫn 09](docs/09-TRIEN-KHAI-VPS-24-7.md) cho cấu hình thực tế, cách tạo VPS và chuyển các tệp private hiện có. Hướng dẫn này đính chính hạn mức Oracle, chế độ AI advisory và phân biệt lịch cấu hình gốc với lịch riêng của từng sàn.
 
 > **Dùng AWS Free Plan:** Theo [hướng dẫn EC2 số 10](docs/10-AWS-EC2-FREE-PLAN.md) để tạo máy từ credit AWS, chạy thử một sàn trước và kiểm soát thời hạn/chi phí.
