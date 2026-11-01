@@ -27,6 +27,7 @@ freqtrade-bot/user_data/research/latest.json
 freqtrade-bot/user_data/research/latest-*.json
 freqtrade-bot/user_data/research/history/
 freqtrade-bot/user_data/research/history-*/
+freqtrade-bot/user_data/reports/
 
 # Android Studio & Gradle build artifacts
 android-app/.gradle/
