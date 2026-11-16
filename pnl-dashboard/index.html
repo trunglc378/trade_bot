@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101419">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Hiệu suất giao dịch | FreqBot</title>
+  <link rel="stylesheet" href="/monitor.css">
+  <script type="module" src="/monitor.js"></script>
+</head>
+<body>
+  <header class="bar">
+    <div class="bar-inner">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span> FreqBot</div>
+      <div class="bar-actions">
+        <span class="tag"><span aria-hidden="true" class="dot"></span> Chỉ đọc</span>
+        <button id="lock" class="secondary" type="button" hidden>Khóa bảng</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="title">
+      <div>
+        <h1 id="title">Hiệu suất giao dịch</h1>
+        <p>Thống kê giao dịch của bot trên Binance và OKX, theo giờ Việt Nam.</p>
+      </div>
+      <button id="refresh" class="primary" type="button" hidden>Làm mới</button>
+    </section>
+
+    <section id="access" class="panel access" aria-labelledby="access-title">
+      <h2 id="access-title">Mở bảng lãi/lỗ</h2>
+      <p>Nhập mã truy cập dashboard để xem dữ liệu tài khoản.</p>
+      <form id="login">
+        <label for="code">Mã truy cập</label>
+        <div class="input-row">
+          <input id="code" type="password" required autocomplete="current-password" maxlength="256" spellcheck="false">
+          <button id="unlock" class="primary" type="submit">Mở bảng</button>
+        </div>
+      </form>
+    </section>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+
+    <div id="dashboard" hidden>
+      <div class="filters">
+        <label>Sàn <select id="exchange"><option value="all">Tất cả sàn</option><option>Binance</option><option>OKX</option></select></label>
+        <label>Khoảng thời gian
+          <select id="range"><option value="7">7 ngày</option><option value="30">30 ngày</option><option value="90">90 ngày</option><option value="all" selected>Toàn bộ</option></select>
+        </label>
+        <time id="updated" class="updated"></time>
+      </div>
+      <div class="metrics">
+        <div class="panel stat"><h2>Lãi/lỗ đã chốt</h2><div id="pnl" class="value"></div><p>Sau phí theo sổ bot</p></div>
+        <div class="panel stat"><h2>Tỷ lệ thắng</h2><div id="winrate" class="value"></div><p id="winloss"></p></div>
+        <div class="panel stat"><h2>Lệnh đã đóng</h2><div id="closed" class="value"></div><p id="flat"></p></div>
+        <div class="panel stat"><h2>Lãi/lỗ đang mở</h2><div id="open-pnl" class="value"></div><p id="open-count"></p></div>
+      </div>
+
+      <section class="panel chart-panel" aria-labelledby="chart-title">
+        <div class="section-head"><div><h2 id="chart-title">Lãi/lỗ tích lũy</h2><p id="chart-description">USDT · Tính từ đầu khoảng thời gian đã chọn</p></div></div>
+        <canvas id="chart" role="img" aria-label="Biểu đồ lãi lỗ tích lũy theo ngày"></canvas>
+        <div class="chart-controls"><label for="chart-day">Ngày trên biểu đồ</label><input id="chart-day" type="range" min="0" max="0" value="0"><output id="chart-value" for="chart-day"></output></div>
+      </section>
+
+      <section class="panel data-panel" aria-labelledby="exchange-title">
+        <div class="section-head"><h2 id="exchange-title">Hiệu suất theo sàn</h2></div>
+        <div class="table-wrap" tabindex="0" aria-label="Bảng hiệu suất theo sàn">
+          <table><thead><tr><th scope="col">Sàn</th><th scope="col">Vốn cấu hình</th><th scope="col">Lệnh đóng</th><th scope="col">Tỷ lệ thắng</th><th scope="col">Lãi/lỗ đã chốt</th></tr></thead><tbody id="exchange-rows"></tbody></table>
+        </div>
+      </section>
+      <section class="panel data-panel" aria-labelledby="trade-title">
+        <div class="section-head"><div><h2 id="trade-title">Giao dịch gần đây</h2><p>Tối đa 35 lệnh đóng gần nhất mỗi sàn</p></div></div>
+        <div class="table-wrap" tabindex="0" aria-label="Bảng giao dịch gần đây">
+          <table><thead><tr><th scope="col">Thời gian</th><th scope="col">Sàn</th><th scope="col">Cặp</th><th scope="col">Lý do thoát</th><th scope="col">Lãi/lỗ đã chốt</th></tr></thead><tbody id="trade-rows"></tbody></table>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer>FreqBot · Báo cáo của bot giao dịch</footer>
+</body>
+</html>

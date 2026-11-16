@@ -1,0 +1,14 @@
+[Unit]
+Description=Publish FreqBot PnL snapshot
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+EnvironmentFile=/home/ubuntu/freqbot-monitor/publisher.env
+ExecStart=/usr/bin/python3 /home/ubuntu/freqbot-monitor/collector.py --bot-data /home/ubuntu/trade_bot/freqtrade-bot/user_data --publish
+TimeoutStartSec=60
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0077

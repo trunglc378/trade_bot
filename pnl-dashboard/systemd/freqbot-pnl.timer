@@ -1,0 +1,10 @@
+[Unit]
+Description=Refresh FreqBot PnL every 30 minutes
+
+[Timer]
+OnCalendar=*-*-* *:05,35:00
+Persistent=true
+Unit=freqbot-pnl.service
+
+[Install]
+WantedBy=timers.target
