@@ -121,6 +121,13 @@
         "research": {
             "mode": "advisory",
             "ttl_seconds": 900,
+            "ai_limits": {
+                "pair_cooldown_seconds": 900,
+                "min_interval_seconds": 300,
+                "daily_requests": 450,
+                "requests_per_minute": 8,
+                "tokens_per_minute": 200000
+            },
             "min_quote_volume": 10000000,
             "max_spread": 0.002,
             "max_volatility": 0.02,

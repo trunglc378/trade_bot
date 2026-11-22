@@ -206,6 +206,17 @@ class ResearchTests(unittest.TestCase):
         report = research.build_report(self.c, self.exchange, NOW, self.yes)
         self.assertTrue(report_allows(report, self.c, "BTC/USDT", NOW))
 
+    def test_required_snapshot_does_not_extend_cached_vote_lifetime(self):
+        self.required()
+        expiry = NOW + timedelta(seconds=10)
+        def cached(*args):
+            return {'BTC/USDT': {'action': 'consider', 'confidence': .9, 'reason': 'cached',
+                                 'expires_at': expiry.isoformat()}}
+        report = research.build_report(self.c, self.exchange, NOW, cached)
+        self.assertEqual(report['expires_at'], expiry.isoformat())
+        self.assertTrue(report_allows(report, self.c, 'BTC/USDT', NOW))
+        self.assertFalse(report_allows(report, self.c, 'BTC/USDT', expiry))
+
     def test_provider_failure_missing_vote_low_confidence_or_veto(self):
         self.required()
         def fail(*args):
@@ -242,6 +253,17 @@ class ResearchTests(unittest.TestCase):
 
 
 class ProviderTests(unittest.TestCase):
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        real_guard = providers.advise_with_budget
+        def isolated(*args, **kwargs):
+            kwargs['directory'] = directory.name
+            return real_guard(*args, **kwargs)
+        guard = patch.object(providers, 'advise_with_budget', side_effect=isolated)
+        guard.start()
+        self.addCleanup(guard.stop)
+
     def test_reject_hallucinated_duplicate_and_invalid_confidence(self):
         row = {"pair": "BTC/USDT", "action": "consider", "confidence": .8, "reason": "test"}
         for rows in ([{**row, "pair": "SCAM/USDT"}], [row, row], [{**row, "confidence": float("nan")}],

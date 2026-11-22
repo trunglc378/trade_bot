@@ -15,7 +15,7 @@ WINDOWS = {
 }
 
 
-def backtest(config, exchange, name, days, strategies, fee, pairs=()):
+def backtest(config, exchange, name, days, strategies, fee, pairs=(), *, timeframe=None, detail=None):
     dest = ROOT / 'comparisons' / exchange / name
     dest.mkdir(parents=True, exist_ok=True)
     command = [
@@ -26,10 +26,18 @@ def backtest(config, exchange, name, days, strategies, fee, pairs=()):
     ]
     if pairs:
         command.extend(['--pairs', *pairs])
+    if timeframe:
+        command.extend(['--timeframe', timeframe])
+    if detail:
+        command.extend(['--timeframe-detail', detail])
+    latest = dest / '.last_result.json'
+    latest.unlink(missing_ok=True)
     with (dest / 'run.log').open('w') as log:
         subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, check=True)
-    if not list(dest.glob('*.zip')):
-        raise RuntimeError(f'No backtest archive in {dest}')
+    archive = dest / json.loads(latest.read_text())['latest_backtest']
+    if not archive.is_file():
+        raise RuntimeError(f'Missing backtest archive {archive}')
+    return archive
 
 
 def main():

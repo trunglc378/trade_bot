@@ -21,12 +21,13 @@ class StrategyHookTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         modules = {}
-        for name in ("freqtrade", "freqtrade.strategy", "freqtrade.persistence", "freqtrade.vendor",
+        for name in ("freqtrade", "freqtrade.strategy", "freqtrade.exchange", "freqtrade.persistence", "freqtrade.vendor",
                      "freqtrade.vendor.qtpylib", "freqtrade.vendor.qtpylib.indicators", "talib", "talib.abstract"):
             modules[name] = types.ModuleType(name)
         modules["freqtrade.strategy"].IStrategy = object
         modules["freqtrade.strategy"].IntParameter = lambda *a, **k: types.SimpleNamespace(value=k["default"])
         modules["freqtrade.strategy"].DecimalParameter = lambda *a, **k: None
+        modules["freqtrade.exchange"].timeframe_to_minutes = lambda timeframe: int(timeframe.removesuffix("m"))
         cls.trade = Mock()
         cls.trade.get_trades_proxy.return_value = []
         modules["freqtrade.persistence"].Trade = cls.trade
@@ -103,6 +104,19 @@ class StrategyHookTests(unittest.TestCase):
                               for t in pd.to_datetime(["2026-10-26T19:55:00Z", "2026-10-26T20:55:00Z"])])
         output = self.strategy.populate_entry_trend(frame, {})
         self.assertEqual(list(output["enter_long"]), [1, 0])
+
+        self.strategy.timeframe = "15m"
+        frame.loc[0, "date"] = pd.Timestamp("2026-10-26T19:45:00Z")
+        frame.loc[1, "date"] = pd.Timestamp("2026-10-26T20:50:00Z")
+        output = self.strategy.populate_entry_trend(frame, {})
+        self.assertEqual(list(output["enter_long"]), [1, 0])
+
+    def test_fifteen_minute_entry_requires_closed_candle(self):
+        self.strategy.timeframe = "15m"
+        self.assertFalse(self.entry())
+        frame, _ = self.strategy.dp.get_analyzed_dataframe.return_value
+        frame.loc[0, "date"] = pd.Timestamp(NOW - timedelta(minutes=15))
+        self.assertTrue(self.entry())
 
     def test_exits_not_blocked_by_schedule_or_broken_report(self):
         trade = Mock(open_rate=100)

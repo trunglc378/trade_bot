@@ -4,9 +4,11 @@ import json
 import os
 import re
 import socket
+from pathlib import Path
 from urllib.request import Request, urlopen
 
 from vn_support import number
+from ai_budget import advise_with_budget
 
 # Ưu tiên kết nối IPv4 cho HTTPS để tránh hiện tượng treo (timeout) IPv6 blackhole trên Windows / VPS
 _orig_https_connect = http.client.HTTPSConnection.connect
@@ -83,7 +85,7 @@ def _extract_gemini_text(result):
     raise ValueError("Unrecognized Gemini response structure")
 
 
-def advise(provider, model, candidates):
+def _request_advice(provider, model, candidates):
     if not re.fullmatch(r"[A-Za-z0-9._-]+", model):
         raise ValueError("Invalid model ID")
     prompt = ("Bạn là bộ phận nghiên cứu Spot, không đặt lệnh. Chỉ dùng dữ liệu JSON bên dưới; "
@@ -116,3 +118,18 @@ def advise(provider, model, candidates):
     else:
         raise ValueError("Unsupported AI provider")
     return validate_votes(json.loads(text), {r["pair"] for r in candidates})
+
+
+def advise(provider, model, candidates, *, directory=None, scope='default', settings=None):
+    if provider not in ('gemini', 'openai') or not re.fullmatch(r'[A-Za-z0-9._-]+', model):
+        raise ValueError('Invalid AI provider/model')
+    if not candidates:
+        return {}
+    # Send numeric technical summaries, never history, prior votes or reports.
+    fields = ('pair', 'close', 'candle_closed_at', 'quote_volume_24h', 'spread',
+              'hour_change', 'volatility_5m', 'volume_ratio', 'rsi_14', 'ema20',
+              'ema50', 'ema200', 'regime', 'score')
+    compact = [{k: row[k] for k in fields if k in row} for row in candidates]
+    directory = directory or Path(__file__).resolve().parent / 'ai-state'
+    return advise_with_budget(provider, model, compact, _request_advice,
+                              directory=directory, scope=scope, settings=settings)

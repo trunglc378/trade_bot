@@ -23,6 +23,7 @@ import pandas as pd
 from pandas import DataFrame
 
 from freqtrade.strategy import IStrategy, IntParameter, DecimalParameter
+from freqtrade.exchange import timeframe_to_minutes
 from freqtrade.persistence import Trade
 import talib.abstract as ta
 import freqtrade.vendor.qtpylib.indicators as qtpylib
@@ -144,7 +145,8 @@ class VnSmartTrendStrategy(IStrategy):
                 return policy["research"]["mode"] != "required"
             frame, _ = self.dp.get_analyzed_dataframe(pair, self.timeframe)
             candle = frame.iloc[-1]
-            age = (now - candle["date"].to_pydatetime() - timedelta(minutes=5)).total_seconds()
+            duration = timedelta(minutes=timeframe_to_minutes(self.timeframe))
+            age = (now - candle["date"].to_pydatetime() - duration).total_seconds()
             if not 0 <= age <= 600 or number(candle["close"]) <= 0:
                 return False
             if abs(number(rate) / number(candle["close"]) - 1) > policy["risk"]["max_entry_deviation"]:
@@ -237,6 +239,9 @@ class VnSmartTrendStrategy(IStrategy):
         """
         Xác định tín hiệu Mua (enter_long) và gắn nhãn lý do bằng Tiếng Việt (enter_tag)
         """
+        return self._filter_entry_schedule(self._populate_entry_signals(dataframe))
+
+    def _populate_entry_signals(self, dataframe: DataFrame) -> DataFrame:
         dataframe.loc[:, "enter_tag"] = ""
         dataframe.loc[:, "enter_long"] = 0
 
@@ -268,10 +273,13 @@ class VnSmartTrendStrategy(IStrategy):
             1,
             "BAT_NHIP_HOI_BOLLINGER_RSI",
         )
+        return dataframe
 
-        # Thời gian nến là thời điểm MỞ nến (UTC); tín hiệu chỉ hoàn tất tại thời điểm ĐÓNG nến (+5 phút)
+    def _filter_entry_schedule(self, dataframe: DataFrame) -> DataFrame:
+        # Thời gian nến là thời điểm MỞ nến (UTC); kiểm tra lịch tại thời điểm ĐÓNG nến.
         schedule = self.config["vn_policy"]["schedule"]
-        sessions = (pd.to_datetime(dataframe["date"], utc=True) + pd.Timedelta(minutes=5)).map(
+        duration = timedelta(minutes=timeframe_to_minutes(self.timeframe))
+        sessions = (pd.to_datetime(dataframe["date"], utc=True) + duration).map(
             lambda date: in_session(date.to_pydatetime(), schedule)
         )
         dataframe.loc[~sessions, ["enter_long", "enter_tag"]] = (0, "")

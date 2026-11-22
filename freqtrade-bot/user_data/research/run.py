@@ -217,13 +217,21 @@ def build_report(config, exchange, now=None, advisor=advise):
     if eligible and settings["mode"] != "off":
         for provider, model in providers.items():
             try:
-                votes = advisor(provider, model, eligible)
+                if advisor is advise:
+                    research_dir = Path(config.get('user_data_dir', Path(__file__).resolve().parents[1])) / 'research'
+                    votes = advisor(provider, model, eligible, directory=research_dir / 'ai-state',
+                                    scope=[exchange.id, context_id(config)],
+                                    settings=settings.get('ai_limits', {}))
+                else:
+                    votes = advisor(provider, model, eligible)
                 for row in eligible:
                     if row["pair"] in votes:
                         row["ai_votes"][provider] = votes[row["pair"]]
             except Exception as exc:
                 # Never log exception messages: upstream errors may contain credentials.
-                errors.append({"provider": provider, "error": type(exc).__name__})
+                status = getattr(exc, 'code', None)
+                errors.append({"provider": provider, "error": type(exc).__name__,
+                               "http_status": status if isinstance(status, int) else None})
     for row in candidates:
         votes = list(row["ai_votes"].values())
         agreement = sum(v["action"] == "consider" and v["confidence"] >= settings["min_ai_confidence"] for v in votes)
@@ -237,8 +245,14 @@ def build_report(config, exchange, now=None, advisor=advise):
                 row["reasons"].append("Chưa đủ phiếu AI đạt ngưỡng đồng thuận")
     schedule = config["vn_policy"].get("schedule", {"enabled": False, "windows": []})
     session_open = in_session(now, schedule)
+    expires = now + timedelta(seconds=settings['ttl_seconds'])
+    if settings['mode'] == 'required':
+        for row in candidates:
+            for vote in row['ai_votes'].values():
+                if 'expires_at' in vote:
+                    expires = min(expires, aware(vote['expires_at']))
     return {"schema_version": 1, "context_id": context_id(config), "exchange": exchange.id,
-            "generated_at": now.isoformat(), "expires_at": (now + timedelta(seconds=settings["ttl_seconds"])).isoformat(),
+            "generated_at": now.isoformat(), "expires_at": expires.isoformat(),
             "vn_time": aware(now).astimezone(VN).strftime("%Y-%m-%d %H:%M:%S GMT+7"),
             "in_trading_session": session_open, "schedule_enabled": schedule.get("enabled", False),
             "schedule_windows": schedule.get("windows", []),
@@ -293,11 +307,11 @@ def _create_exchange(name: str):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, action="append", help="Later JSON files override earlier configs")
-    parser.add_argument("--loop", type=int, default=0, help="Refresh seconds, >=60; 0 = once")
+    parser.add_argument("--loop", type=int, default=0, help="Refresh seconds, >=300; 0 = once")
     args = parser.parse_args()
     configs = args.config or [Path(__file__).resolve().parents[1] / "config.json"]
-    if args.loop and args.loop < 60:
-        parser.error("--loop must be >= 60")
+    if args.loop and args.loop < 300:
+        parser.error("--loop must be >= 300")
     _load_dotenv_if_present(Path(__file__).resolve().parents[2])
     logging.basicConfig(level=logging.INFO)
     while True:
@@ -318,7 +332,8 @@ def main():
             atomic_write(history_dir / (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f") + ".json"), report)
             max_hist = int(config["vn_policy"]["research"].get("max_history_files", 288))
             prune_history(history_dir, max_files=max_hist)
-            log.info("Đã lưu báo cáo nghiên cứu (%s): %s cặp coin, %s lỗi nguồn", name, len(report["candidates"]), len(report["errors"]))
+            log.info("Đã lưu báo cáo nghiên cứu (%s): %s cặp coin, %s lỗi nguồn; AI errors=%s", name, len(report["candidates"]), len(report["errors"]),
+                     [e for e in report['errors'] if 'provider' in e])
         except Exception as exc:
             log.error("Lỗi chu kỳ nghiên cứu thị trường: %s", type(exc).__name__)
             if not args.loop:

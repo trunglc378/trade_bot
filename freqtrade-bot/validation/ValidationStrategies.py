@@ -18,10 +18,39 @@ class VnTrend1hCandidate(VnSmartTrendStrategy):
 
     def populate_entry_trend(self, dataframe, metadata):
         dataframe = super().populate_entry_trend(dataframe, metadata)
-        # informative() shifts the 1h data to its close before merging into 5m.
-        allowed = dataframe['trend_ok_1h'].fillna(False).astype(bool)
+        # Only use the 1h trend once the informative candle has closed.
+        allowed = dataframe['trend_ok_1h'].eq(True)
         dataframe.loc[~allowed, ['enter_long', 'enter_tag']] = (0, '')
         return dataframe
+
+
+class VnTrend15mCandidate(VnTrend1hCandidate):
+    timeframe = '15m'
+
+    @property
+    def protections(self):
+        # Keep the original protection windows in minutes across both timeframes.
+        settings = super().protections
+        for protection in settings:
+            for key in ('lookback_period_candles', 'stop_duration_candles'):
+                if key in protection:
+                    protection[key] = protection[key] // 3
+        return settings
+
+
+class VnTrend15mEntryCandidate(VnTrend1hCandidate):
+    @informative('15m', ffill=False)
+    def populate_entry_indicators_15m(self, dataframe, metadata):
+        dataframe = super().populate_indicators(dataframe, metadata)
+        signals = self._populate_entry_signals(dataframe)
+        return signals[['date', 'enter_long', 'enter_tag']]
+
+    def populate_entry_trend(self, dataframe, metadata):
+        # The 15m signal is available only on the 5m candle with the same close.
+        allowed = dataframe['enter_long_15m'].eq(1) & dataframe['trend_ok_1h'].eq(True)
+        dataframe['enter_long'] = allowed.astype(int)
+        dataframe['enter_tag'] = dataframe['enter_tag_15m'].where(allowed, '')
+        return self._filter_entry_schedule(dataframe)
 
 
 class VnEarlierTrailCandidate(VnSmartTrendStrategy):

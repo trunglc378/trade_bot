@@ -38,7 +38,7 @@ services:
       - "--config"
       - "/freqtrade/user_data/${BINANCE_PRIVATE_CONFIG:-config.private.binance.json}"
       - "--loop"
-      - "${RESEARCH_INTERVAL_SECONDS:-300}"
+      - "${RESEARCH_INTERVAL_SECONDS:-600}"
     volumes:
       - "./user_data:/freqtrade/user_data"
     logging:
@@ -88,7 +88,7 @@ services:
       - "--config"
       - "/freqtrade/user_data/${OKX_PRIVATE_CONFIG:-config.private.okx.json}"
       - "--loop"
-      - "${RESEARCH_INTERVAL_SECONDS:-300}"
+      - "${RESEARCH_INTERVAL_SECONDS:-600}"
     volumes:
       - "./user_data:/freqtrade/user_data"
     logging:

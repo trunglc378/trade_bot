@@ -143,7 +143,7 @@ def write_env_file(
     gemini_key: str,
     tailscale_ip: str,
     dry_run: bool,
-    research_interval: int = 300,
+    research_interval: int = 600,
 ) -> None:
     """Ghi tệp .env cho Docker Compose (tự động chọn tệp SQLite tách biệt giữa Dry-Run và Live)."""
     binance_db = "tradesv3.binance.dryrun.sqlite" if dry_run else "tradesv3.binance.live.sqlite"
@@ -152,7 +152,7 @@ def write_env_file(
         "# Tệp môi trường tự động tạo bởi setup_accounts.py (Tuyệt đối không commit lên Git)",
         f"OPENAI_API_KEY={openai_key.strip()}",
         f"GEMINI_API_KEY={gemini_key.strip()}",
-        f"RESEARCH_INTERVAL_SECONDS={max(60, int(research_interval))}",
+        f"RESEARCH_INTERVAL_SECONDS={max(300, int(research_interval))}",
         f"TAILSCALE_IP={tailscale_ip.strip() or '127.0.0.1'}",
         "BINANCE_PRIVATE_CONFIG=config.private.binance.json",
         f"BINANCE_DB_FILE={binance_db}",
