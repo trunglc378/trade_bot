@@ -1,6 +1,7 @@
 """Bounded HTTPS clients; all AI output is untrusted advisory data."""
 import http.client
 import json
+import logging
 import os
 import re
 import socket
@@ -131,5 +132,9 @@ def advise(provider, model, candidates, *, directory=None, scope='default', sett
               'ema50', 'ema200', 'regime', 'score')
     compact = [{k: row[k] for k in fields if k in row} for row in candidates]
     directory = directory or Path(__file__).resolve().parent / 'ai-state'
-    return advise_with_budget(provider, model, compact, _request_advice,
-                              directory=directory, scope=scope, settings=settings)
+    try:
+        return advise_with_budget(provider, model, compact, _request_advice,
+                                  directory=directory, scope=scope, settings=settings)
+    except BlockingIOError:
+        logging.getLogger('research').info('AI provider=%s quota lock busy; deferred until next scan', provider)
+        return {}

@@ -253,6 +253,12 @@ class ResearchTests(unittest.TestCase):
 
 
 class ProviderTests(unittest.TestCase):
+    def test_shared_quota_lock_busy_is_neutral_without_api_call(self):
+        with patch.object(providers, 'advise_with_budget', side_effect=BlockingIOError), \
+                patch.object(providers, 'post') as post:
+            self.assertEqual(providers.advise('gemini', 'model-test', [{'pair': 'BTC/USDT'}]), {})
+            post.assert_not_called()
+
     def setUp(self):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
