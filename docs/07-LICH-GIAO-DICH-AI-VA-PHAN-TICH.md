@@ -131,6 +131,10 @@ Mở `http://127.0.0.1:8090`. CORS mẫu chỉ cho origin localhost:8090. Không
 
 ### Bật AI
 
+**Cập nhật 25/11/2026:** Xem [quy tắc hạn mức mới](12-DIEU-TRA-REQUEST-VA-GIOI-HAN-AI.md). `vn_policy.research.ai_control.enabled` mặc định false. Khi bật, worker giới hạn số lần gọi và dùng cache/circuit; chu kỳ thu thập 300 giây không còn là chu kỳ gọi AI. Output cap hiện là 1.000 token thay vì 4.000 mô tả ở bản trước.
+
+Với Gemini Pro và nghiên cứu tin tức từ nhiều nguồn, xem [hướng dẫn bổ sung 08](08-GEMINI-PRO-VA-NGHIEN-CUU-DA-NGUON.md). Adapter nhận cả model ID dạng chuỗi và object cấu hình Gemini có `google_search`, ngưỡng số miền và allowlist nguồn. Google Search chỉ được bật khi áp dụng cấu hình riêng, không bật trong config gốc.
+
 Copy `.env.example` thành `.env` trong `freqtrade-bot`, điền `OPENAI_API_KEY` / `GEMINI_API_KEY`. Các khóa này chỉ được truyền cho service research. ChatGPT qua API OpenAI là tích hợp riêng, cần quyền truy cập/billing API; tài khoản chat không tự tạo khóa API.
 
 Đặt trong `vn_policy.research`:

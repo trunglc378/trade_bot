@@ -30,7 +30,7 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 HOST = os.environ.get("MOCK_HOST", "127.0.0.1")
-PORT = 8080
+PORT = int(os.environ.get("MOCK_PORT", "8080"))
 
 # Tài khoản mặc định khớp với config.json
 VALID_USERNAME = "admin"
@@ -406,11 +406,13 @@ class FreqtradeMockHandler(BaseHTTPRequestHandler):
             return
 
         content_len = int(self.headers.get("Content-Length", 0))
-        raw_body = self.rfile.read(content_len).decode("utf-8") if content_len > 0 else "{}"
         try:
+            raw_body = self.rfile.read(content_len).decode("utf-8") if content_len > 0 else "{}"
             payload = json.loads(raw_body) if raw_body else {}
-        except Exception:
-            payload = {}
+        except (ValueError, UnicodeDecodeError):
+            return self._send_json({"detail": "JSON không hợp lệ"}, status_code=400)
+        if not isinstance(payload, dict):
+            return self._send_json({"detail": "Payload phải là JSON object"}, status_code=400)
 
         # 2. Tạm dừng mua mới (/api/v1/stopbuy)
         if path == "/api/v1/stopbuy":
@@ -457,7 +459,12 @@ class FreqtradeMockHandler(BaseHTTPRequestHandler):
 
         # 4. Bán khẩn cấp - Panic Sell (/api/v1/forceexit)
         elif path == "/api/v1/forceexit":
-            trade_id = str(payload.get("tradeid", "all"))
+            raw_id = payload.get("tradeid")
+            if isinstance(raw_id, bool) or not isinstance(raw_id, (str, int)):
+                return self._send_json({"detail": "Cần tradeid cụ thể hoặc all"}, status_code=400)
+            trade_id = str(raw_id)
+            if trade_id.lower() != "all" and not (trade_id.isdigit() and int(trade_id) > 0):
+                return self._send_json({"detail": "tradeid không hợp lệ"}, status_code=400)
             update_live_prices()
             if trade_id.lower() == "all":
                 closed_count = len(BOT_STATE["open_trades"])

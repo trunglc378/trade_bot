@@ -7,16 +7,20 @@ function element() {
     return {textContent: "", children: [], appendChild(child) { this.children.push(child); },
         replaceChildren() { this.children = []; }, addEventListener() {}};
 }
-const context = vm.createContext({window: {addEventListener() {}}, setInterval() {}, console,
+const context = vm.createContext({window: {addEventListener() {}}, setInterval() {}, console, URL,
     document: {getElementById(id) { if (!elements.has(id)) elements.set(id, element()); return elements.get(id); },
         createElement: element}});
 vm.runInContext(fs.readFileSync("web-dashboard/app.js", "utf8"), context);
 const report = {schema_version: 1, exchange: "binance", mode: "required", errors: [],
     generated_at: new Date(Date.now() - 10000).toISOString(), expires_at: new Date(Date.now() + 60000).toISOString(),
     candidates: [{pair: "BTC/USDT", score: 80, spread: .001, hour_change: .02, eligible: true,
-        ai_votes: {openai: {action: "consider", confidence: .9, reason: "<img src=x onerror=alert(1)>"}}}]};
+        ai_votes: {openai: {action: "consider", confidence: .9, reason: "<img src=x onerror=alert(1)>",
+            sources: [{url: "https://reuters.com/markets", title: "Market source"},
+                      {url: "javascript:alert(1)", title: "Unsafe"}]}}}]};
 vm.runInContext(`researchSnapshot = ${JSON.stringify(report)}; hienThiNghienCuu();`, context);
 assert.match(elements.get("researchRows").children[0].children[6].textContent, /<img/);
+assert.equal(elements.get("researchRows").children[0].children[6].children.length, 1);
+assert.equal(elements.get("researchRows").children[0].children[6].children[0].href, "https://reuters.com/markets");
 assert.match(elements.get("researchRows").children[0].children[5].textContent, /Qua bộ lọc/);
 vm.runInContext(`researchSnapshot.expires_at = "2020-01-01T00:00:00Z"; hienThiNghienCuu();`, context);
 assert.match(elements.get("researchRows").children[0].children[5].textContent, /hết hạn/);

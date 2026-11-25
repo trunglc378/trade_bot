@@ -214,6 +214,24 @@ function hienThiNghienCuu() {
             td.textContent = value;
             tr.appendChild(td);
         }
+        // Only create HTTPS links. Model-provided text is never inserted as HTML.
+        const evidenceCell = tr.children[6];
+        const seenSources = new Set();
+        for (const [provider, vote] of Object.entries(row.ai_votes || {})) {
+            for (const source of (Array.isArray(vote.sources) ? vote.sources : [])) {
+                try {
+                    const url = new URL(source.url);
+                    if (url.protocol !== "https:" || url.username || url.password || seenSources.has(url.href)) continue;
+                    seenSources.add(url.href);
+                    const link = document.createElement("a");
+                    link.href = url.href;
+                    link.target = "_blank";
+                    link.rel = "noopener noreferrer";
+                    link.textContent = ` [${provider}: ${source.title || url.hostname}]`;
+                    evidenceCell.appendChild(link);
+                } catch (_) { /* Invalid/untrusted URL: omit. */ }
+            }
+        }
         tbody.appendChild(tr);
     }
 }

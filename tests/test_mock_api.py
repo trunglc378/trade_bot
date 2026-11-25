@@ -52,3 +52,16 @@ class MockApiTests(unittest.TestCase):
     def test_dashboard_is_served(self):
         with urlopen(self.url + "/dashboard", timeout=3) as response:
             self.assertIn(b"researchFile", response.read())
+
+    def test_malformed_forceexit_does_not_close_positions(self):
+        token = "fixture-test-token"
+        self.module.BOT_STATE["active_tokens"].add(token)
+        headers = {"Authorization": "Bearer " + token, "Content-Type": "application/json"}
+        before = list(self.module.BOT_STATE["open_trades"])
+        for body in (b"{broken", b"{}", b"[]", b'{"tradeid":null}', b'{"tradeid":true}', b'{"tradeid":0}'):
+            with self.subTest(body=body):
+                req = Request(self.url + "/api/v1/forceexit", data=body, headers=headers)
+                with self.assertRaises(HTTPError) as error:
+                    urlopen(req, timeout=3)
+                self.assertEqual(error.exception.code, 400)
+                self.assertEqual(self.module.BOT_STATE["open_trades"], before)

@@ -216,7 +216,7 @@ class ProviderTests(unittest.TestCase):
             self.assertIn("BTC/USDT", providers.advise("gemini", "model-test", [{"pair": "BTC/USDT"}]))
             self.assertEqual(post.call_args.args[1], {"x-goog-api-key": "fake", "Api-Revision": "2026-05-20"})
             self.assertTrue(post.call_args.args[0].endswith("/interactions"))
-            self.assertEqual(post.call_args.args[2]["generation_config"]["max_output_tokens"], 4000)
+            self.assertEqual(post.call_args.args[2]["generation_config"]["max_output_tokens"], 1000)
 
     def test_gemini_incomplete_text_is_never_a_vote(self):
         for response in ({"status": "incomplete", "output_text": "{}"},

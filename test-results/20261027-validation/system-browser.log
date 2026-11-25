@@ -1,0 +1,42 @@
+[
+  {
+    "id": "SYS-01-login-dashboard",
+    "status": "PASS",
+    "duration_ms": 1242
+  },
+  {
+    "id": "SYS-02-invalid-login",
+    "status": "PASS",
+    "duration_ms": 548
+  },
+  {
+    "id": "SYS-03-stop-and-resume",
+    "status": "PASS",
+    "duration_ms": 521
+  },
+  {
+    "id": "SYS-04-panic-confirmation",
+    "status": "PASS",
+    "duration_ms": 527
+  },
+  {
+    "id": "SYS-05-close-single-trade",
+    "status": "PASS",
+    "duration_ms": 494
+  },
+  {
+    "id": "SYS-06-risk-lock",
+    "status": "PASS",
+    "duration_ms": 432
+  },
+  {
+    "id": "SYS-07-research-grounding-mobile",
+    "status": "PASS",
+    "duration_ms": 512
+  },
+  {
+    "id": "SYS-08-file-stale-xss-and-invalid-json",
+    "status": "PASS",
+    "duration_ms": 384
+  }
+]

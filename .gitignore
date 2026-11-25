@@ -26,3 +26,8 @@ android-app/local.properties
 .idea/
 .DS_Store
 Thumbs.db
+node_modules/
+*.pem
+*.key
+docs/dashboard-access.txt
+docs/ssh-key-public.key.pub

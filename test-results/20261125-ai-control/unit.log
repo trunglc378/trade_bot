@@ -1,0 +1,27 @@
+test_avoid_remains_a_veto_without_enough_sources (test_gemini_grounding.GroundingTests.test_avoid_remains_a_veto_without_enough_sources) ... ok
+test_grounding_request_and_native_evidence (test_gemini_grounding.GroundingTests.test_grounding_request_and_native_evidence) ... ok
+test_model_urls_without_native_citations_do_not_count (test_gemini_grounding.GroundingTests.test_model_urls_without_native_citations_do_not_count) ... ok
+test_options_reject_misconfiguration (test_gemini_grounding.GroundingTests.test_options_reject_misconfiguration) ... ok
+test_two_subdomains_count_as_one_configured_source (test_gemini_grounding.GroundingTests.test_two_subdomains_count_as_one_configured_source) ... ok
+test_untrusted_and_unsafe_urls_are_excluded (test_gemini_grounding.GroundingTests.test_untrusted_and_unsafe_urls_are_excluded) ... ok
+test_bad_timezone_and_schedule (test_research.PolicyTests.test_bad_timezone_and_schedule) ... ok
+test_hourly_timezone_and_net_profit (test_research.PolicyTests.test_hourly_timezone_and_net_profit) ... ok
+test_multiple_windows_and_weekdays (test_research.PolicyTests.test_multiple_windows_and_weekdays) ... ok
+test_non_finite_risk_and_invalid_book (test_research.PolicyTests.test_non_finite_risk_and_invalid_book) ... ok
+test_overnight_uses_start_day (test_research.PolicyTests.test_overnight_uses_start_day) ... ok
+test_risk_budget_position_and_exposure (test_research.PolicyTests.test_risk_budget_position_and_exposure) ... ok
+test_vn_session_boundaries (test_research.PolicyTests.test_vn_session_boundaries) ... ok
+test_gemini_incomplete_text_is_never_a_vote (test_research.ProviderTests.test_gemini_incomplete_text_is_never_a_vote) ... ok
+test_gemini_request_and_parsing (test_research.ProviderTests.test_gemini_request_and_parsing) ... ok
+test_openai_request_and_parsing (test_research.ProviderTests.test_openai_request_and_parsing) ... ok
+test_refusal_and_truncation (test_research.ProviderTests.test_refusal_and_truncation) ... ok
+test_reject_hallucinated_duplicate_and_invalid_confidence (test_research.ProviderTests.test_reject_hallucinated_duplicate_and_invalid_confidence) ... ok
+test_dynamic_stake_size_risk_limits (test_vn_policy.TestVnPolicyAndAiAdvisor.test_dynamic_stake_size_risk_limits) ... ok
+test_gemini_interactions_and_legacy_parser (test_vn_policy.TestVnPolicyAndAiAdvisor.test_gemini_interactions_and_legacy_parser) ... ok
+test_golden_trading_session_03_to_04_vn (test_vn_policy.TestVnPolicyAndAiAdvisor.test_golden_trading_session_03_to_04_vn) ... ok
+test_overnight_trading_session (test_vn_policy.TestVnPolicyAndAiAdvisor.test_overnight_trading_session) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 0.033s
+
+OK

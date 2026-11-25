@@ -127,7 +127,19 @@
             "max_hour_change": 0.06,
             "providers": {},
             "min_ai_votes": 2,
-            "min_ai_confidence": 0.7
+            "min_ai_confidence": 0.7,
+            "ai_control": {
+                "enabled": false,
+                "only_in_session": true,
+                "min_interval_seconds": 1800,
+                "max_requests_per_hour": 2,
+                "max_requests_per_day": 20,
+                "cache_ttl_seconds": 600,
+                "max_candidates": 3,
+                "max_input_chars": 12000,
+                "backoff_seconds": 900,
+                "max_backoff_seconds": 21600
+            }
         }
     }
 }

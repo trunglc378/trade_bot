@@ -10,10 +10,12 @@ import sys
 import tempfile
 import time
 from datetime import datetime, timedelta, timezone
+from urllib.error import HTTPError
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "strategies"))
 from vn_support import VN, aware, context_id, in_session, number, spread_ratio
-from providers import advise
+from providers import advise, provider_options
+from ai_control import AIController, AICallBlocked
 
 log = logging.getLogger("research")
 
@@ -116,6 +118,8 @@ def build_report(config, exchange, now=None, advisor=advise):
     providers = settings["providers"]
     if any(p not in ("openai", "gemini") for p in providers):
         raise ValueError("Unsupported provider")
+    for provider, specification in providers.items():
+        provider_options(provider, specification)
     quorum = settings["min_ai_votes"]
     if type(quorum) is not int or quorum < 1:
         raise ValueError("Invalid AI quorum")
@@ -149,7 +153,12 @@ def build_report(config, exchange, now=None, advisor=advise):
                         row["ai_votes"][provider] = votes[row["pair"]]
             except Exception as exc:
                 # Never log exception messages: upstream errors may contain credentials.
-                errors.append({"provider": provider, "error": type(exc).__name__})
+                error = {"provider": provider, "error": type(exc).__name__}
+                if isinstance(exc, AICallBlocked):
+                    error["reason"] = exc.reason
+                if isinstance(exc, HTTPError):
+                    error["http_status"] = exc.code
+                errors.append(error)
     for row in candidates:
         votes = list(row["ai_votes"].values())
         agreement = sum(v["action"] == "consider" and v["confidence"] >= settings["min_ai_confidence"] for v in votes)
@@ -163,8 +172,15 @@ def build_report(config, exchange, now=None, advisor=advise):
                 row["reasons"].append("Chưa đủ phiếu AI đạt ngưỡng đồng thuận")
     schedule = config["vn_policy"].get("schedule", {"enabled": False, "windows": []})
     session_open = in_session(now, schedule)
+    expires_at = now + timedelta(seconds=settings["ttl_seconds"])
+    if settings["mode"] == "required":
+        cache_ttl = settings.get("ai_control", {}).get("cache_ttl_seconds", 600)
+        for row in candidates:
+            for vote in row["ai_votes"].values():
+                if vote.get("analysis_generated_at"):
+                    expires_at = min(expires_at, aware(vote["analysis_generated_at"]) + timedelta(seconds=cache_ttl))
     return {"schema_version": 1, "context_id": context_id(config), "exchange": exchange.id,
-            "generated_at": now.isoformat(), "expires_at": (now + timedelta(seconds=settings["ttl_seconds"])).isoformat(),
+            "generated_at": now.isoformat(), "expires_at": expires_at.isoformat(),
             "vn_time": aware(now).astimezone(VN).strftime("%Y-%m-%d %H:%M:%S GMT+7"),
             "in_trading_session": session_open, "schedule_enabled": schedule.get("enabled", False),
             "schedule_windows": schedule.get("windows", []),
@@ -207,7 +223,8 @@ def main():
             # Intentionally do not pass private exchange keys or arbitrary CCXT config.
             exchange = getattr(ccxt, name)({"enableRateLimit": True, "timeout": 15000,
                                            "options": {"defaultType": "spot"}})
-            report = build_report(config, exchange)
+            controlled_advisor = AIController(config, configs[0].parent / "research", advise)
+            report = build_report(config, exchange, advisor=controlled_advisor)
             atomic_write(configs[0].parent / "research" / "latest.json", report)
             atomic_write(configs[0].parent / "research" / "history" /
                          (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f") + ".json"), report)

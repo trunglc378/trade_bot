@@ -1,0 +1,539 @@
+{
+  "started_at_utc": "2026-10-27T16:00:22.092041+00:00",
+  "started_at_vn": "2026-10-27T23:00:22.092041+07:00",
+  "completed_at_utc": "2026-10-27T16:00:36.062604+00:00",
+  "environment": {
+    "python": "3.12.7 | packaged by Anaconda, Inc. | (main, Oct  4 2024, 13:17:27) [MSC v.1929 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0"
+  },
+  "scope": "Offline software qualification. Freqtrade/TA-Lib/CCXT/paid AI replaced by fixtures where stated. Real Edge + mock API system tests.",
+  "summary": {
+    "unit": {
+      "PASS": 22,
+      "FAIL": 0,
+      "ERROR": 0,
+      "SKIP": 0
+    },
+    "integration": {
+      "PASS": 31,
+      "FAIL": 0,
+      "ERROR": 0,
+      "SKIP": 0
+    },
+    "system": {
+      "PASS": 8,
+      "FAIL": 0
+    }
+  },
+  "python_tests": [
+    {
+      "id": "test_gemini_grounding.GroundingTests.test_avoid_remains_a_veto_without_enough_sources",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_gemini_grounding.GroundingTests.test_grounding_request_and_native_evidence",
+      "status": "PASS",
+      "duration_seconds": 0.016,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_gemini_grounding.GroundingTests.test_model_urls_without_native_citations_do_not_count",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_gemini_grounding.GroundingTests.test_options_reject_misconfiguration",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_gemini_grounding.GroundingTests.test_two_subdomains_count_as_one_configured_source",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_gemini_grounding.GroundingTests.test_untrusted_and_unsafe_urls_are_excluded",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_research.PolicyTests.test_bad_timezone_and_schedule",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_research.PolicyTests.test_hourly_timezone_and_net_profit",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_research.PolicyTests.test_multiple_windows_and_weekdays",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_research.PolicyTests.test_non_finite_risk_and_invalid_book",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_research.PolicyTests.test_overnight_uses_start_day",
+      "status": "PASS",
+      "duration_seconds": 0.015,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_research.PolicyTests.test_risk_budget_position_and_exposure",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_research.PolicyTests.test_vn_session_boundaries",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_research.ProviderTests.test_gemini_incomplete_text_is_never_a_vote",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_research.ProviderTests.test_gemini_request_and_parsing",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_research.ProviderTests.test_openai_request_and_parsing",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_research.ProviderTests.test_refusal_and_truncation",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_research.ProviderTests.test_reject_hallucinated_duplicate_and_invalid_confidence",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_vn_policy.TestVnPolicyAndAiAdvisor.test_dynamic_stake_size_risk_limits",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_vn_policy.TestVnPolicyAndAiAdvisor.test_gemini_interactions_and_legacy_parser",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_vn_policy.TestVnPolicyAndAiAdvisor.test_golden_trading_session_03_to_04_vn",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_vn_policy.TestVnPolicyAndAiAdvisor.test_overnight_trading_session",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "unit"
+    },
+    {
+      "id": "test_gemini_grounding.GroundingTests.test_gemini_only_overlay_and_worker",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_integration.PipelineIntegrationTests.test_grounded_provider_to_snapshot_to_entry_policy",
+      "status": "PASS",
+      "duration_seconds": 0.047,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_integration.PipelineIntegrationTests.test_worker_cli_invalid_loop_exits_before_importing_ccxt",
+      "status": "PASS",
+      "duration_seconds": 0.313,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_integration.PipelineIntegrationTests.test_worker_cli_merges_overlay_and_writes_history",
+      "status": "PASS",
+      "duration_seconds": 0.297,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_integration.TransportIntegrationTests.test_provider_transport_serializes_json_and_rejects_oversized_reply",
+      "status": "PASS",
+      "duration_seconds": 0.578,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_mock_api.MockApiTests.test_dashboard_is_served",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_mock_api.MockApiTests.test_forged_bearer_rejected",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_mock_api.MockApiTests.test_login_read_and_stopbuy_over_http",
+      "status": "PASS",
+      "duration_seconds": 0.016,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_mock_api.MockApiTests.test_malformed_forceexit_does_not_close_positions",
+      "status": "PASS",
+      "duration_seconds": 0.016,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_research.ResearchTests.test_advisory_failure_does_not_veto_technical",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_research.ResearchTests.test_ai_cannot_override_market_veto",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_research.ResearchTests.test_invalid_quorum_and_threshold",
+      "status": "PASS",
+      "duration_seconds": 0.016,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_research.ResearchTests.test_missing_stale_or_bad_candles_fail",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_research.ResearchTests.test_provider_failure_missing_vote_low_confidence_or_veto",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_research.ResearchTests.test_report_roundtrip_and_expiry",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_research.ResearchTests.test_required_consensus",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_research.ResearchTests.test_rsi_and_overlay_merge",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_research.ResearchTests.test_unavailable_market_and_blacklist",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_research.ResearchTests.test_unfinished_candle_not_used",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_research.ResearchTests.test_wrong_exchange_policy_and_pair",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_strategy.StrategyHookTests.test_entry_accepts_fresh_report_in_session",
+      "status": "PASS",
+      "duration_seconds": 0.015,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_strategy.StrategyHookTests.test_entry_vetoes_outside_session_and_oversize",
+      "status": "PASS",
+      "duration_seconds": 0.016,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_strategy.StrategyHookTests.test_entry_vetoes_stale_report_or_missing_file",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_strategy.StrategyHookTests.test_entry_vetoes_wide_spread_deviation_and_stale_candle",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_strategy.StrategyHookTests.test_exits_not_blocked_by_schedule_or_broken_report",
+      "status": "PASS",
+      "duration_seconds": 0.015,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_strategy.StrategyHookTests.test_historical_does_not_read_research_or_orderbook",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_strategy.StrategyHookTests.test_notification_failure_does_not_block_stoploss",
+      "status": "PASS",
+      "duration_seconds": 0.016,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_strategy.StrategyHookTests.test_schedule_filters_candle_close_not_open_time",
+      "status": "PASS",
+      "duration_seconds": 0.016,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_strategy.StrategyHookTests.test_sizing_hook_rejects_exchange_minimum_and_api_failure",
+      "status": "PASS",
+      "duration_seconds": 0.015,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_vn_policy.TestVnPolicyAndAiAdvisor.test_mock_server_research_report",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    },
+    {
+      "id": "test_vn_policy.TestVnPolicyAndAiAdvisor.test_multi_ai_consensus_and_veto",
+      "status": "PASS",
+      "duration_seconds": 0.0,
+      "detail": null,
+      "level": "integration"
+    }
+  ],
+  "system_tests": [
+    {
+      "id": "SYS-01-login-dashboard",
+      "status": "PASS",
+      "duration_ms": 1093
+    },
+    {
+      "id": "SYS-02-invalid-login",
+      "status": "PASS",
+      "duration_ms": 754
+    },
+    {
+      "id": "SYS-03-stop-and-resume",
+      "status": "PASS",
+      "duration_ms": 736
+    },
+    {
+      "id": "SYS-04-panic-confirmation",
+      "status": "PASS",
+      "duration_ms": 506
+    },
+    {
+      "id": "SYS-05-close-single-trade",
+      "status": "PASS",
+      "duration_ms": 500
+    },
+    {
+      "id": "SYS-06-risk-lock",
+      "status": "PASS",
+      "duration_ms": 480
+    },
+    {
+      "id": "SYS-07-research-grounding-mobile",
+      "status": "PASS",
+      "duration_ms": 570
+    },
+    {
+      "id": "SYS-08-file-stale-xss-and-invalid-json",
+      "status": "PASS",
+      "duration_ms": 380
+    }
+  ],
+  "checks": [
+    {
+      "id": "js-syntax",
+      "command": [
+        "node",
+        "--check",
+        "web-dashboard/app.js"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "duration_seconds": 0.062,
+      "log": "js-syntax.log"
+    },
+    {
+      "id": "js-dom-regression",
+      "command": [
+        "node",
+        "tests/test_dashboard.js"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "duration_seconds": 0.156,
+      "log": "js-dom-regression.log"
+    },
+    {
+      "id": "compose-config",
+      "command": [
+        "docker",
+        "compose",
+        "-f",
+        "freqtrade-bot/docker-compose.yml",
+        "config",
+        "--quiet"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "duration_seconds": 0.485,
+      "log": "compose-config.log"
+    },
+    {
+      "id": "docker-engine",
+      "command": [
+        "docker",
+        "info",
+        "--format",
+        "{{.ServerVersion}}"
+      ],
+      "status": "BLOCKED",
+      "exit_code": 0,
+      "duration_seconds": 1.062,
+      "log": "docker-engine.log",
+      "reason": "No valid Docker ServerVersion; see connection error in log"
+    },
+    {
+      "id": "browser-dependency",
+      "command": [
+        "node",
+        "-e",
+        "require('./tests/system/node_modules/playwright-core')"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "duration_seconds": 0.516,
+      "log": "browser-dependency.log"
+    },
+    {
+      "id": "system-browser",
+      "command": [
+        "node",
+        "tests/system/dashboard.e2e.cjs"
+      ],
+      "status": "PASS",
+      "exit_code": 0,
+      "duration_seconds": 7.609,
+      "log": "system-browser.log"
+    },
+    {
+      "id": "android-xml",
+      "status": "PASS",
+      "files": 7
+    },
+    {
+      "id": "android-build",
+      "status": "BLOCKED",
+      "gradle_available": false,
+      "sdk_configured": false,
+      "reason": "Build/device test requires Android SDK and Gradle; XML parse is not a build"
+    },
+    {
+      "id": "real-exchange-provider",
+      "status": "NOT_RUN",
+      "reason": "No real orders, paid AI calls, live provider contracts or exchange execution in this offline run"
+    }
+  ],
+  "live_qualification": false,
+  "source_manifest": "source-manifest.json"
+}

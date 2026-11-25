@@ -1,5 +1,11 @@
 # Dự Án Hệ Thống Giao Dịch Tiền Điện Tử Tự Động, Phân Tích AI Đa Nguồn & Điều Khiển Từ Xa Tiếng Việt (FreqBot VN Remote)
 
+Cập nhật 25/11/2026: [điều tra request và giới hạn AI](docs/12-DIEU-TRA-REQUEST-VA-GIOI-HAN-AI.md). Worker mặc định tắt gọi AI mạng; khi bật có bộ đếm/cooldown/cache/circuit lưu trên đĩa. Bản sửa cục bộ chưa được triển khai lên VPS AWS.
+
+Kiểm thử: [kế hoạch và đặc tả test](docs/09-KE-HOACH-VA-DAC-TA-KIEM-THU.md), [báo cáo ngày 27/10/2026](docs/10-BAO-CAO-KIEM-THU.md). Runner: `py -3.12 tests/run_tests.py`; system test cần `npm ci --prefix tests/system --ignore-scripts --no-audit --no-fund`. Báo cáo phân biệt kiểm thử offline với các bước Docker/Android/sàn thật chưa thực hiện được.
+
+Bổ sung Gemini Pro: [hướng dẫn nghiên cứu đa nguồn, cấu hình Google Search và quyền lợi thuê bao](docs/08-GEMINI-PRO-VA-NGHIEN-CUU-DA-NGUON.md). Có overlay Gemini riêng và mẫu prompt để dùng trực tiếp trên Gemini web; chế độ tự động cần API key/project riêng.
+
 > **Trạng thái triển khai 27/10/2026:** Xem [đặc tả và hướng dẫn 07](docs/07-LICH-GIAO-DICH-AI-VA-PHAN-TICH.md) để biết hành vi thực tế. Mặc định dry-run, AI tham khảo, chưa có provider/API key. 03:00–04:00 là giả thuyết cần backtest, chưa phải “giờ vàng” đã được chứng minh. Worker có RSI14 và nhãn regime theo luật; Android có thẻ nghiên cứu qua mock, chưa có endpoint tương ứng trên Freqtrade thật; web đọc tệp, có thể đồng bộ qua endpoint riêng của mock. Tên model cần cấu hình theo quyền truy cập tài khoản. Chưa có kết quả lợi nhuận hoặc kiểm thử khớp lệnh thật.
 
 Kiểm tra từ thư mục gốc: `py -3.12 -m unittest discover -s tests -v` và `node tests/test_dashboard.js`. Chạy pipeline giả lập bằng `docker compose up -d` trong `freqtrade-bot` khi Docker Engine sẵn sàng. Cấu hình, cách bật AI và quy trình kiểm chứng nằm trong tài liệu 07.

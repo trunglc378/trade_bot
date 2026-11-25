@@ -1,0 +1,49 @@
+{
+  "started_at": "2026-10-27T16:00:28.749Z",
+  "completed_at": "2026-10-27T16:00:35.690Z",
+  "browser": "156.0.4314.42",
+  "executablePath": "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+  "scope": "Real browser + isolated mock HTTP service; no exchange/provider calls",
+  "results": [
+    {
+      "id": "SYS-01-login-dashboard",
+      "status": "PASS",
+      "duration_ms": 1093
+    },
+    {
+      "id": "SYS-02-invalid-login",
+      "status": "PASS",
+      "duration_ms": 754
+    },
+    {
+      "id": "SYS-03-stop-and-resume",
+      "status": "PASS",
+      "duration_ms": 736
+    },
+    {
+      "id": "SYS-04-panic-confirmation",
+      "status": "PASS",
+      "duration_ms": 506
+    },
+    {
+      "id": "SYS-05-close-single-trade",
+      "status": "PASS",
+      "duration_ms": 500
+    },
+    {
+      "id": "SYS-06-risk-lock",
+      "status": "PASS",
+      "duration_ms": 480
+    },
+    {
+      "id": "SYS-07-research-grounding-mobile",
+      "status": "PASS",
+      "duration_ms": 570
+    },
+    {
+      "id": "SYS-08-file-stale-xss-and-invalid-json",
+      "status": "PASS",
+      "duration_ms": 380
+    }
+  ]
+}

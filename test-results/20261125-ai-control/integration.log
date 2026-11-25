@@ -1,0 +1,47 @@
+test_429_retry_after_stops_immediate_retries (test_ai_control.AIControlTests.test_429_retry_after_stops_immediate_retries) ... ok
+test_503_failure_backs_off_and_counts_failed_attempt (test_ai_control.AIControlTests.test_503_failure_backs_off_and_counts_failed_attempt) ... ok
+test_cache_preserves_original_analysis_time_and_restart_interval (test_ai_control.AIControlTests.test_cache_preserves_original_analysis_time_and_restart_interval) ... ok
+test_concurrent_workers_reserve_only_one_request (test_ai_control.AIControlTests.test_concurrent_workers_reserve_only_one_request) ... ok
+test_disabled_and_outside_session_never_call_advisor (test_ai_control.AIControlTests.test_disabled_and_outside_session_never_call_advisor) ... ok
+test_hourly_cap_is_shared_across_providers (test_ai_control.AIControlTests.test_hourly_cap_is_shared_across_providers) ... ok
+test_input_and_batch_caps (test_ai_control.AIControlTests.test_input_and_batch_caps) ... ok
+test_pause_survives_new_controller (test_ai_control.AIControlTests.test_pause_survives_new_controller) ... ok
+test_payment_auth_model_errors_latch_circuit (test_ai_control.AIControlTests.test_payment_auth_model_errors_latch_circuit) ... ok
+test_required_snapshot_does_not_extend_cached_ai_freshness (test_ai_control.AIControlTests.test_required_snapshot_does_not_extend_cached_ai_freshness) ... ok
+test_rolling_daily_cap_persists_across_restarts (test_ai_control.AIControlTests.test_rolling_daily_cap_persists_across_restarts) ... ok
+test_gemini_only_overlay_and_worker (test_gemini_grounding.GroundingTests.test_gemini_only_overlay_and_worker) ... ok
+test_grounded_provider_to_snapshot_to_entry_policy (test_integration.PipelineIntegrationTests.test_grounded_provider_to_snapshot_to_entry_policy) ... ok
+test_worker_cli_invalid_loop_exits_before_importing_ccxt (test_integration.PipelineIntegrationTests.test_worker_cli_invalid_loop_exits_before_importing_ccxt) ... ok
+test_worker_cli_merges_overlay_and_writes_history (test_integration.PipelineIntegrationTests.test_worker_cli_merges_overlay_and_writes_history) ... ok
+test_provider_transport_serializes_json_and_rejects_oversized_reply (test_integration.TransportIntegrationTests.test_provider_transport_serializes_json_and_rejects_oversized_reply) ... ok
+test_dashboard_is_served (test_mock_api.MockApiTests.test_dashboard_is_served) ... ok
+test_forged_bearer_rejected (test_mock_api.MockApiTests.test_forged_bearer_rejected) ... ok
+test_login_read_and_stopbuy_over_http (test_mock_api.MockApiTests.test_login_read_and_stopbuy_over_http) ... ok
+test_malformed_forceexit_does_not_close_positions (test_mock_api.MockApiTests.test_malformed_forceexit_does_not_close_positions) ... ok
+test_advisory_failure_does_not_veto_technical (test_research.ResearchTests.test_advisory_failure_does_not_veto_technical) ... ok
+test_ai_cannot_override_market_veto (test_research.ResearchTests.test_ai_cannot_override_market_veto) ... ok
+test_invalid_quorum_and_threshold (test_research.ResearchTests.test_invalid_quorum_and_threshold) ... ok
+test_missing_stale_or_bad_candles_fail (test_research.ResearchTests.test_missing_stale_or_bad_candles_fail) ... ok
+test_provider_failure_missing_vote_low_confidence_or_veto (test_research.ResearchTests.test_provider_failure_missing_vote_low_confidence_or_veto) ... ok
+test_report_roundtrip_and_expiry (test_research.ResearchTests.test_report_roundtrip_and_expiry) ... ok
+test_required_consensus (test_research.ResearchTests.test_required_consensus) ... ok
+test_rsi_and_overlay_merge (test_research.ResearchTests.test_rsi_and_overlay_merge) ... ok
+test_unavailable_market_and_blacklist (test_research.ResearchTests.test_unavailable_market_and_blacklist) ... ok
+test_unfinished_candle_not_used (test_research.ResearchTests.test_unfinished_candle_not_used) ... ok
+test_wrong_exchange_policy_and_pair (test_research.ResearchTests.test_wrong_exchange_policy_and_pair) ... ok
+test_entry_accepts_fresh_report_in_session (test_strategy.StrategyHookTests.test_entry_accepts_fresh_report_in_session) ... ok
+test_entry_vetoes_outside_session_and_oversize (test_strategy.StrategyHookTests.test_entry_vetoes_outside_session_and_oversize) ... ok
+test_entry_vetoes_stale_report_or_missing_file (test_strategy.StrategyHookTests.test_entry_vetoes_stale_report_or_missing_file) ... ok
+test_entry_vetoes_wide_spread_deviation_and_stale_candle (test_strategy.StrategyHookTests.test_entry_vetoes_wide_spread_deviation_and_stale_candle) ... ok
+test_exits_not_blocked_by_schedule_or_broken_report (test_strategy.StrategyHookTests.test_exits_not_blocked_by_schedule_or_broken_report) ... ok
+test_historical_does_not_read_research_or_orderbook (test_strategy.StrategyHookTests.test_historical_does_not_read_research_or_orderbook) ... ok
+test_notification_failure_does_not_block_stoploss (test_strategy.StrategyHookTests.test_notification_failure_does_not_block_stoploss) ... ok
+test_schedule_filters_candle_close_not_open_time (test_strategy.StrategyHookTests.test_schedule_filters_candle_close_not_open_time) ... ok
+test_sizing_hook_rejects_exchange_minimum_and_api_failure (test_strategy.StrategyHookTests.test_sizing_hook_rejects_exchange_minimum_and_api_failure) ... ok
+test_mock_server_research_report (test_vn_policy.TestVnPolicyAndAiAdvisor.test_mock_server_research_report) ... ok
+test_multi_ai_consensus_and_veto (test_vn_policy.TestVnPolicyAndAiAdvisor.test_multi_ai_consensus_and_veto) ... ok
+
+----------------------------------------------------------------------
+Ran 42 tests in 2.656s
+
+OK
