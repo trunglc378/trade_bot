@@ -1,7 +1,7 @@
 {
     "vn_policy": {
         "research": {
-            "mode": "advisory",
+            "mode": "off",
             "providers": {
                 "gemini": {
                     "model": "gemini-pro-latest",

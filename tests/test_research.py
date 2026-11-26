@@ -23,6 +23,9 @@ NOW = datetime(2026, 10, 26, 20, 30, tzinfo=timezone.utc)  # Tue 03:30 VN
 def config():
     c = json.loads((ROOT / "freqtrade-bot/user_data/config.json").read_text(encoding="utf-8"))
     c["exchange"]["pair_whitelist"] = ["BTC/USDT"]
+    # Active trading fixtures are explicit; deployed defaults remain suspended.
+    c["vn_policy"]["trading_paused"] = False
+    c["vn_policy"]["research"]["mode"] = "advisory"
     return c
 
 

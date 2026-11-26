@@ -9,6 +9,7 @@ env/
 .env
 config-secrets.json
 *.sqlite*
+AI_PAUSE
 freqtrade-bot/user_data/data/
 freqtrade-bot/user_data/logs/
 freqtrade-bot/user_data/backtest_results/

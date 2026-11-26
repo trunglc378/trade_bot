@@ -1,7 +1,7 @@
 {
     "$schema": "https://schema.freqtrade.io/schema.json",
     "bot_name": "FreqBot_VN_Remote",
-    "max_open_trades": 4,
+    "max_open_trades": 0,
     "stake_currency": "USDT",
     "stake_amount": 200,
     "tradable_balance_ratio": 0.99,
@@ -89,10 +89,12 @@
     },
     "initial_state": "running",
     "force_entry_enable": false,
+    "position_adjustment_enable": false,
     "internals": {
         "process_throttle_secs": 5
     },
     "vn_policy": {
+        "trading_paused": true,
         "schedule": {
             "enabled": true,
             "windows": [
@@ -119,7 +121,7 @@
             "max_entry_deviation": 0.005
         },
         "research": {
-            "mode": "advisory",
+            "mode": "off",
             "ttl_seconds": 900,
             "min_quote_volume": 10000000,
             "max_spread": 0.002,

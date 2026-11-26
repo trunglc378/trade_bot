@@ -102,7 +102,7 @@ class VnSmartTrendStrategy(IStrategy):
     def custom_stake_amount(self, pair, current_time, current_rate, proposed_stake,
                             min_stake, max_stake, leverage, entry_tag, side, **kwargs):
         try:
-            if side != "long" or leverage != 1:
+            if self.config.get("vn_policy", {}).get("trading_paused", False) or side != "long" or leverage != 1:
                 return 0.0
             return self._stake(proposed_stake, max_stake, min_stake)
         except Exception:
@@ -112,6 +112,8 @@ class VnSmartTrendStrategy(IStrategy):
     def _entry_allowed(self, pair, amount, rate, now, side):
         try:
             policy = self.config["vn_policy"]
+            if policy.get("trading_paused", False):
+                return False
             if side != "long" or not in_session(now, policy["schedule"]):
                 return False
             cost = number(amount) * number(rate)

@@ -62,6 +62,17 @@ class StrategyHookTests(unittest.TestCase):
         self.assertTrue(self.entry())
         self.strategy.dp.send_msg.assert_called_once()
 
+    def test_pause_blocks_entry_and_position_sizing(self):
+        self.strategy.config["vn_policy"]["trading_paused"] = True
+        self.assertFalse(self.entry())
+        self.assertEqual(self.strategy.custom_stake_amount(
+            "BTC/USDT", NOW, 102.59, 200, 10, 1000, 1, "test", "long"), 0)
+        self.strategy.dp.orderbook.assert_not_called()
+        trade = Mock(open_rate=100)
+        trade.calc_profit_ratio.return_value = -.04
+        self.assertTrue(self.strategy.confirm_trade_exit(
+            "BTC/USDT", trade, "market", 1, 96, "GTC", "stop_loss", NOW))
+
     def test_entry_vetoes_outside_session_and_oversize(self):
         self.assertFalse(self.entry(NOW + timedelta(hours=1)))
         self.assertFalse(self.entry(amount=100))
